@@ -1,0 +1,41 @@
+#side_buttons {
+	position: absolute;
+	left: 0px;
+	top: 140px;
+	width: 100px;
+	height: 300px;
+}
+
+#app {
+	width: 800px;
+	height: 600px;
+}
+
+#three_panel {
+	float: left;
+	width: 300px;
+	height: 500px;
+}
+
+.mainpanel {
+	margin: 4px;
+	border: 2px solid white;
+	background: rgba(200, 210, 210, .8);
+	width: 200px;
+	height: 200px;
+	box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, .4);
+	border-radius: 15px;
+}
+
+#drawing_panel {
+	-webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC); /* this fixes the overflow:hidden in Chrome/Opera */
+	float: left;
+	width: 390px;
+	height: 500px;
+}
+
+#drawing_canvas {
+	float: left;
+	width: 390px;
+	height: 500px;
+}
