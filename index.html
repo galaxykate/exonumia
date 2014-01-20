@@ -8,7 +8,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<title>Sine scientia ars nihil est.</title>
+		<title>Per aspera ad astra.</title>
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -17,7 +17,7 @@
 		<link rel="stylesheet" href="css/normalize.css">
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="css/app.css">
-		<link rel="stylesheet" href="css/medalApp.css">
+		<link rel="stylesheet" href="css/stellarApp.css">
 		<link rel="stylesheet" href="css/jqueryUI/absolution.css">
 		<script src="js/vendor/modernizr-2.6.2.min.js"></script>
 		<!-- load fonts -->
@@ -35,12 +35,39 @@
 			<div id="drawing_panel" class="mainpanel">
 
 				<canvas id="drawing_canvas" class="full_canvas"></canvas>
-			</div>
-			<div id="three_panel" class="mainpanel">
+				<div id="universe_overlay">
 
+				</div>
+				<div id="universe_info">
+					<div id="mode_info">
+						"Test"
+					</div>
+					<div id="camera_info">
+						"Test"
+					</div>
+					<div id="zoom_info">
+						"Test"
+					</div>
+				</div>
 			</div>
 
 			<div id="ui" class="app_size app_overlay">
+				<div id="inventory">
+					<div id="element_wallet" class="subpanel">
+						<div id="element_containers">
+
+						</div>
+					</div>
+					<div id="collection" class="subpanel">
+						<div id="collection_slots" class="subpanel">
+
+						</div>
+					</div>
+				</div>
+
+				<div id="noticeBar"></div>
+
+				<div id="centralPopup" class="centralPopupClosed"></div>
 				<div id="dev_controls">
 
 				</div>
@@ -54,7 +81,7 @@
             window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')
 		</script>
 		<script src="js/plugins.js"></script>
-		<script data-main="js/medalMain" src="js/vendor/require.js"></script>
+		<script data-main="js/stellarMain" src="js/vendor/require.js"></script>
 
 		<!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
 		<script>

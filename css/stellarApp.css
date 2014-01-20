@@ -1,0 +1,195 @@
+#side_buttons {
+	position: absolute;
+	left: 0px;
+	top: 140px;
+	width: 100px;
+	height: 300px;
+}
+#app {
+	width: 800px;
+	height: 600px;
+}
+#slider_panel {
+	position: absolute;
+	width: 280px;
+	height: 120px;
+}
+.panel {
+	padding: 7px;
+	margin: 4px;
+	border: 2px solid white;
+	background: rgba(200, 210, 210, .8);
+	width: 200px;
+	height: 200px;
+	box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, .4);
+	border-radius: 15px;
+}
+.mainpanel {
+	margin: 4px;
+	background: rgba(200, 210, 210, .8);
+	width: 200px;
+	height: 200px;
+	box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, .4);
+	border-radius: 15px;
+}
+.universe_label {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	color: white;
+	padding: 7px;
+	background: rgba(0, 0, 0, .4);
+	line-height: 80%;
+	
+border-radius: 15px;
+}
+#universe_overlay {
+	pointer-events: none;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+}
+#universe_info {
+	font-size: 70%;
+	position: absolute;
+	right: 0px;
+	width: 200px;
+	height: 120px;
+	border: 2px solid rgba(255, 255, 255, .4);
+	background: rgba(90, 90, 90, .8);
+	border-radius: 15px;
+	color: white;
+}
+
+
+#drawing_panel {
+	-webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC); /* this fixes the overflow:hidden in Chrome/Opera */
+	float: left;
+}
+#drawing_canvas {
+	float: left;
+}
+
+#noticeBar {
+	bottom: 120px;
+	position: absolute;
+}
+
+
+
+.popup {
+	position: absolute;	
+	overflow: hidden;
+	transition: all .3s ease-in-out;
+
+font-size: 80%;
+	border: 2px solid rgba(255, 255, 255, .4);
+	background: rgba(0, 0, 0, .8);
+	border-radius: 15px;
+	color: white;
+
+}
+
+#centralPopup {
+	position: absolute;
+	margin-left: auto;
+	margin-right: auto;
+	left: 0;
+	right: 0;
+	top: 100px;
+	border: 2px solid rgba(255, 255, 255, .4);
+	background: rgba(90, 90, 90, .8);
+	border-radius: 15px;
+	color: white;
+	
+	pointer-events: all;
+	transition: all .2s ease-in-out;
+		width: 500px;
+	height: 320px;
+}
+
+.centralPopupClosed {
+	 -webkit-transform: translate(0px, 0px)  rotateX(90deg) scale3d(.4, .4, .4);
+	
+}
+.centralPopupOpen {
+	opacity: 1;
+	
+	-webkit-transform: translate(.0, .0)  scale3d(1, 1, 1);
+
+}
+
+#centralPopup h3 {
+	-webkit-animation: blinker 1.7s cubic-bezier(.5, 0, 1, 1) infinite alternate;
+}
+.popupThumbnail {
+	width: 200px;
+	height: 200px;
+	border: 2px solid rgba(255, 255, 255, .4);
+	background: rgba(90, 90, 90, .8);
+	border-radius: 15px;
+	color: white;
+}
+
+
+#element_wallet {
+	top: 12px;
+	left: 2px;
+	position:relative;
+}
+
+.elementHolder {
+	position:relative;
+	-webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
+
+border-radius: 15px;
+	overflow: hidden;
+	margin: 2px;
+	width : 150px;
+	height: 17px;
+}
+
+.elementBG {
+	
+	border-radius: 15px;
+	top:-1px;
+	left -1px;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	margin: 0 auto;
+	-webkit-transition: all 500ms cubic-bezier(0.495, 0.085, 0.655, 1.585); 
+
+}
+
+.elementFill {
+	top:0px;
+	left 0px;
+	position: absolute;
+	margin: 0 auto;
+	width: 78%;
+	height: 85%;
+	-webkit-transition: all 500ms cubic-bezier(0.495, 0.085, 0.655, 1.585); 
+
+}
+
+
+.elementLabel {
+	font-size: 80%;
+	padding: 2px;
+		top:0px;
+	left 0px;
+	position: absolute;
+
+}
+
+
+
+@-webkit-keyframes blinker {
+0% { opacity: 0.8; }
+
+100% { opacity: 1.0; }
+}
+
+
+

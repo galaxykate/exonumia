@@ -8,6 +8,14 @@
 define(["common"], function(COMMON) {'use strict';
     var popupCount = 0;
 
+    var listDivs = function(array) {
+        var s = array.reduce(function(acc, current) {
+            return acc + " " + current.popupIndex;
+
+        }, "");
+        return s;
+    };
+
     var getRectCSS = function(position, dimensions, css) {
         if (css === undefined) {
             css = {};
@@ -112,7 +120,8 @@ define(["common"], function(COMMON) {'use strict';
             }
 
             div.html(html);
-            div.addClass("popup " + this.classes);
+           
+            div.addClass("popup");
 
             // Add a click handler
             div.click(function(event) {
@@ -134,28 +143,22 @@ define(["common"], function(COMMON) {'use strict';
             var div = this.div;
             var popup = this;
 
-            console.log("Open " + this);
             div.removeClass("popup_hidden");
             div.addClass("popup_active");
 
-            this.div.css({
-                width : "auto",
-                height : "auto",
-
-            });
             this.setPosition(this.positions.open);
 
             // start the timer
             if (this.timeout > 0 && this.timeout !== undefined) {
                 setTimeout(function() {
                     popup.close();
-                }, this.timeout * 1000);
+                }, this.timeout);
             }
         },
 
         close : function() {
             var popup = this;
-            console.log("Close " + this);
+
             if (popup.onClose !== undefined) {
                 popup.onClose();
             }
@@ -176,12 +179,12 @@ define(["common"], function(COMMON) {'use strict';
         init : function(context) {
 
             // Default values:
-            this.maxPopups = 40;
-
+            this.maxPopups = 0;
+            this.divCount = 0;
             // Overlay with custom context
             $.extend(this, context);
 
-            this.div = $("#" + this.divName);
+            this.popupHolder = $("#" + this.divName);
 
             this.freeDivs = [];
             this.popups = [];
@@ -189,46 +192,58 @@ define(["common"], function(COMMON) {'use strict';
             // Create a div pool
             for (var i = 0; i < this.maxPopups; i++) {
                 var popupDiv = this.createPopupDiv(i);
-                this.div.append(popupDiv);
                 this.freeDivs[i] = popupDiv;
             }
 
         },
 
         createPopupDiv : function(index) {
-            var div = $("<div/>", {
+            var popupDiv = $("<div/>", {
                 "class" : "popup popup_hidden",
-                id : "popupHolder" + index,
+                id : "popup" + this.divCount,
             });
 
-            return div;
+            popupDiv.popupIndex = this.divCount;
+
+            // Add to the holder
+            this.popupHolder.append(popupDiv);
+            this.divCount++;
+            return popupDiv;
+        },
+
+        getFreeDiv : function() {
+            return this.createPopupDiv();
         },
 
         // Do something to add a popup
         addPopup : function(context) {
             // Get a free div
 
-            if (this.freeDivs.length > 0) {
-                var div = this.freeDivs.pop();
-                var popup = new Popup(context);
-                popup.manager = this;
-                popup.setDiv(div);
-                this.popups.push(popup);
-
-                return popup;
+            if (this.freeDivs.length === 0) {
             }
+            var div = this.getFreeDiv();
+            var popup = new Popup(context);
+            popup.manager = this;
+            popup.setDiv(div);
+            this.popups.push(popup);
+
+            return popup;
+
         },
 
         cleanup : function() {
             var manager = this;
+
             // Free up all the divs
             $.each(manager.popups, function(index, popup) {
                 if (popup.deleted) {
-                    manager.freeDivs.push(popup.div);
+                    popup.div.remove();
+                    // manager.freeDivs.push(popup.div);
                 }
             });
-            this.popups = _.filter(this.popups, function(popup) {
-                return popup.deleted;
+
+            manager.popups = _.filter(manager.popups, function(popup) {
+                return !popup.deleted;
             });
 
         }
@@ -237,6 +252,22 @@ define(["common"], function(COMMON) {'use strict';
     var NoticeBar = PopupManager.extend({
         init : function(context) {
             this._super(context);
+
+            // test
+            // this.testPopupChain();
+            this.testCount = 0;
+        },
+
+        testPopupChain : function() {
+            var pm = this;
+            setTimeout(function() {
+                pm.addPopup({
+                    html : "popup" + String.fromCharCode(65 + (pm.testCount % 26)),
+                    timeout : Math.random() * 6000 + 400,
+                });
+                pm.testCount++;
+                pm.testPopupChain();
+            }, Math.random() * 2000 + 100);
         },
 
         addPopup : function(context) {
@@ -250,6 +281,35 @@ define(["common"], function(COMMON) {'use strict';
             return popup;
         },
     });
+
+    var CenterPopup = Class.extend({
+        init : function(divName, openStyle, closedStyle) {
+            var popup = this;
+            this.div = $("#" + divName);
+            this.div.addClass(closedStyle);
+
+            this.openStyle = openStyle;
+            this.closedStyle = closedStyle;
+            this.div.click(function() {
+                popup.close();
+            });
+        },
+
+        open : function(decorate) {
+            this.div.html("");
+
+            this.div.removeClass(this.closedStyle);
+            decorate(this.div);
+            this.div.addClass(this.openStyle);
+
+        },
+        close : function() {
+            this.div.removeClass(this.openStyle);
+            this.div.addClass(this.closedStyle);
+
+        }
+    });
+    Popup.CenterPopup = CenterPopup;
 
     Popup.PopupManager = PopupManager;
     Popup.NoticeBar = NoticeBar;

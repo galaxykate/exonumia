@@ -106,7 +106,49 @@ define('common', ["inheritance", "noise", prefix + "transform", prefix + "vector
         return utilities.noise.apply(undefined, arguments) * .5 + .5;
     };
 
-    // test noise
+    //==================================================
+    // Handlers
+    // For some list of actions ["remove", "click", "givePoints"]
+    //   an object should be able to:
+    //     - subscribe a new function to this actions with object.onAction(fxn)
+    //     - notify all the subscribers with obj.applyToHandlers(actionName, args)
+
+    // Make a list of functions that can be used to subscribe functions to actions
+    utilities.addSubscribers = function(actions, actionNames) {
+        $.each(actionNames, function(index, name) {
+            var onName = "on" + utilities.capitaliseFirstLetter(name);
+
+            // add a new handler
+            actions[onName] = function(f) {
+                // Make the list of handlers if it doesn't exist yet
+                if (!this[name + "Handlers"])
+                    this[name + "Handlers"] = [];
+                this[name + "Handlers"].push(f);
+            }
+        });
+
+    };
+
+    // pass these arguments to all the handlers
+    var applyToHandlers = function(actionName, args) {
+          var handlers = this[actionName + "Handlers"];
+        if (handlers) {
+            for (var i = 0; i < handlers.length; i++) {
+                handlers[i].apply(this, args);
+            }
+        } else {
+            console.log("No handlers for " + actionName);
+        }
+    };
+
+    utilities.addHandlers = function(object, actions) {
+        object.applyToHandlers = applyToHandlers;
+
+        // Add some objects
+        _.extend(object, actions);
+    };
+
+    //==================================================
 
     utilities = _utilities;
 

@@ -8,6 +8,58 @@
 var prefix = "modules/shared/ui/";
 define(["common", "processing", prefix + "panel", prefix + "controls", prefix + "popup", prefix + "mode", prefix + "output", prefix + "window"], function(common, Processing, Panel, Controls, Popup, Mode, Output, DrawingWindow) {'use strict';
 
+    var addSlider = function(parent, key, defaultValue, minValue, maxValue, onChange) {
+
+        // Create an empty slider div
+        var optionDiv = $("<div/>", {
+        });
+        optionDiv.css({
+            "pointer-events" : "auto"
+        });
+        parent.append(optionDiv);
+
+        var slider = $('<div />', {
+            id : 'slider_' + key,
+            class : "tuning_slider",
+            value : key
+        });
+
+        var step = maxValue - minValue;
+        if (step < 10)
+            step = .1;
+        else
+            step = 1;
+
+        slider.appendTo(optionDiv);
+        slider.slider({
+            range : "min",
+            value : defaultValue,
+            min : minValue,
+            max : maxValue,
+            step : step,
+            slide : function(event, ui) {
+                $("#" + key + "amt").text(ui.value);
+                console.log("Slide " + ui.value);
+                if (onChange !== undefined) {
+                    onChange(key, ui.value);
+                }
+            }
+        });
+
+        // Create a lable
+        $('<label />', {
+            'for' : 'slider_' + key,
+            text : key + ": "
+        }).appendTo(optionDiv);
+
+        // Create a lable
+        $('<span />', {
+            id : key + "amt",
+            text : defaultValue
+        }).appendTo(optionDiv);
+
+        return slider;
+    };
     //==============================================================
     //==============================================================
     //==============================================================
@@ -39,7 +91,8 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             var processingInstance = new Processing(canvas, function sketchProc(processing) {
                 // Setup
                 processing.size(div.width(), div.height());
-
+                processing.colorMode(processing.HSB, 1);
+                processing.ellipseMode(processing.CENTER_RADIUS);
                 setupFunc(processing);
 
                 // Override draw function, by default it will be called 60 times per second
@@ -57,7 +110,10 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
         getPanels : function(names) {
             var ui = this;
             var panels = _.map(names, function(name) {
-                return ui.panels[name];
+                var panel = ui.panels[name];
+                if (panel === undefined)
+                    throw ("Cannot find panel '" + name + "'");
+                return panel;
             });
 
             console.log("Get Panels " + names + " -> " + panels);
@@ -182,56 +238,31 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             });
 
         },
+
         addTuningValue : function(key, defaultValue, minValue, maxValue, onChange) {
             var ui = this;
-
-            var optionDiv = $("<div/>", {
-
-            });
-
             var parent = this.panels.devSliders.div;
-            parent.append(optionDiv);
-
-            var slider = $('<div />', {
-                id : 'slider_' + key,
-                class : "tuning_slider",
-                value : key
-            });
-
-            slider.appendTo(optionDiv);
-            slider.slider({
-                range : "min",
-                value : 37,
-                min : 1,
-                max : 700,
-                slide : function(event, ui) {
-                    $("#amount").val("$" + ui.value);
-                }
-            });
-
-            $('<label />', {
-                'for' : 'slider_' + key,
-                text : key
-            }).appendTo(optionDiv);
+            var uiOnChange = function(key, value) {
+                ui.tuningValues[key].value = value;
+                onChange(key, value);
+            }
+            var slider = addSlider(parent, key, defaultValue, minValue, maxValue, uiOnChange);
 
             ui.tuningValues[key] = {
                 value : defaultValue,
                 slider : slider,
             };
 
-            slider.click(function() {
-                ui.tuningValues[key].value = slider.value
-                console.log(key + ": " + ui.tuningValues[key].value);
-                if (onChange !== undefined) {
-                    onChange(key, ui.tuningValues[key].value);
-                }
-            });
-
         },
+
         addPopupManager : function(id, manager) {
             this.popupManagers[id] = manager;
             return manager;
         },
+
+        createSlider : function() {
+
+        }
     });
 
     UI.Controls = Controls;

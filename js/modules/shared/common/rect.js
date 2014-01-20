@@ -15,12 +15,16 @@ define(["./vector"], function(Vector) {
                 this.w = arguments[2];
                 this.h = arguments[3];
 
-            } else {
+            } else if (arguments.length === 2) {
                 this.x = arguments[0].x;
                 this.y = arguments[0].y;
                 this.w = arguments[1].x;
                 this.h = arguments[1].y;
+            } else {
+                this.w = 0;
+                this.h = 0;
             }
+
         },
 
         clone : function() {
@@ -68,14 +72,22 @@ define(["./vector"], function(Vector) {
         },
 
         stretchToContainPoint : function(pt) {
-            if (pt.x < this.x)
+            if (this.x === undefined)
                 this.x = pt.x;
-            if (pt.y < this.y)
+            if (this.y === undefined)
                 this.y = pt.y;
-            if (pt.x > this.x + this.w)
-                this.w = pt.x - this.x;
-            if (pt.y > this.y + this.h)
-                this.h = pt.y - this.y;
+
+            if (pt.x < this.x) {
+                this.w += this.x - pt.x;
+                this.x = pt.x;
+            }
+            if (pt.y < this.y) {
+                this.h += this.y - pt.y;
+                this.y = pt.y;
+            }
+
+            this.w = Math.max(this.w, pt.x - this.x);
+            this.h = Math.max(this.h, pt.y - this.y);
 
         },
 
@@ -107,6 +119,14 @@ define(["./vector"], function(Vector) {
 
             var p = new Vector(x + this.x, y + this.y);
             return p;
+        },
+
+        centerTransform : function(g) {
+            g.translate(-this.x + -this.w / 2, -this.y + -this.h / 2)
+        },
+
+        draw : function(g) {
+            g.rect(this.x, this.y, this.w, this.h);
         },
 
         toCSS : function() {

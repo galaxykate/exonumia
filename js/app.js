@@ -14,17 +14,27 @@ define(["ui", "common"], function(UI, common) {
 
         },
 
+        addTimeSpan : function(timespan) {
+            this.timespans.add(timespan);
+        },
+
         addElapsed : function(t) {
             this.ellapsed = t;
             this.total += t;
         },
-
         updateTime : function(t) {
-           
-            this.ellapsed = t - this.total;
-            this.total = t;
-        },
+            if (isNaN(t)) {
+                throw ("Update time " + this.name + " with bad total value " + t);
+            }
 
+            this.ellapsed = t - this.total;
+            if (isNaN(this.ellapsed) || this.ellapsed < .001 && this.ellapsed > 1) {
+                throw ("Update time " + this.name + " with bad ellapsed value " + this.ellapsed);
+
+            }
+            this.total = t;
+            this.timespans.update(this.ellapsed);
+        },
         toString : function() {
             return this.name + ": " + this.total.toFixed(2) + "(" + this.ellapsed.toFixed(3) + ")";
         }
@@ -67,9 +77,7 @@ define(["ui", "common"], function(UI, common) {
             // Set the starting time of the app
             var date = new Date();
             this.startTime = date.getTime();
-            console.log(name + ": Started at " + this.startTime);
-
-        },
+           },
 
         changeMode : function(modeName) {
             console.log("MODE: Change to " + modeName);
@@ -122,11 +130,16 @@ define(["ui", "common"], function(UI, common) {
         //========================================
         // option/tuning value accessors
         getOption : function(key) {
-            return app.ui.options[key].value;
+            if (app.ui.options[key] !== undefined)
+                return app.ui.options[key].value;
+            return false;
         },
 
         getTuningValue : function(key) {
-            return app.ui.tuningValues[key].value;
+            if (app.ui.tuningValues[key]) {
+                return app.ui.tuningValues[key].value;
+            }
+            return 0;
         },
         //========================================
         // time

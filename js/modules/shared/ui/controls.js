@@ -30,13 +30,48 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
             this.onScrollFxns = [];
             this.onUpFxns = [];
             this.onMoveFxns = [];
+            this.onDblTapFxns = [];
+            this.onTapFxns = [];
 
             // Record which div is being activated in the touch,
             selector.mousedown(function(event) {
                 tw.activate();
-                console.log("MOUSE DOWN");
                 event.preventDefault();
 
+            });
+
+            selector.mouseup(function(event) {
+                tw.deactivate();
+                 event.preventDefault();
+            });
+
+            selector.mousemove(function(event) {
+
+                tw.controls.enterTouchable(tw);
+
+                event.preventDefault();
+            });
+
+            selector.mouseenter(function(event) {
+                tw.controls.enterTouchable(tw);
+            });
+
+            selector.mouseleave(function(event) {
+                tw.controls.exitTouchable(tw);
+            });
+
+            selector.click(function(event) {
+
+                $.each(tw.onTapFxns, function(index, f) {
+                    f(tw, tw.localPos);
+                });
+            });
+
+            selector.dblclick(function(event) {
+
+                $.each(tw.onDblTapFxns, function(index, f) {
+                    f(tw, tw.localPos);
+                });
             });
 
             selector.append("something");
@@ -61,6 +96,13 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
 
         onUp : function(fxn) {
             this.onUpFxns.push(fxn);
+        },
+
+        onTap : function(fxn) {
+            this.onTapFxns.push(fxn);
+        },
+        onDblTap : function(fxn) {
+            this.onDblTapFxns.push(fxn);
         },
 
         setLocalPos : function(screenPos) {
@@ -98,10 +140,10 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
             $.each(this.onDownFxns, function(index, f) {
                 f(tw, tw.localPos);
             });
-            console.log(tw + "-down:" + this.localPos);
         },
 
         touchMove : function(mouseDown, screenPos) {
+
             var tw = this;
             this.setLocalPos(screenPos);
 
@@ -109,18 +151,32 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
                 $.each(this.onDragFxns, function(index, f) {
                     f(tw, tw.localPos);
                 });
-                console.log(tw + "-drag:" + this.localPos);
+                app.moveLog(tw + "-drag:" + this.localPos);
             } else {
                 $.each(this.onMoveFxns, function(index, f) {
-                    f(tw, localPos);
+                    f(tw, tw.localPos);
                 });
-                console.log(tw + "-move:" + this.localPos);
+                app.moveLog(tw + "-move:" + this.localPos);
             }
         },
 
         touchScroll : function(delta) {
-             var tw = this;
-           $.each(this.onScrollFxns, function(index, f) {
+            var tw = this;
+            $.each(this.onScrollFxns, function(index, f) {
+                f(tw, delta);
+            });
+        },
+
+        touchTap : function(delta) {
+            var tw = this;
+            $.each(this.onTapFxns, function(index, f) {
+                f(tw, delta);
+            });
+        },
+
+        touchDblTap : function(delta) {
+            var tw = this;
+            $.each(this.onDblTapFxns, function(index, f) {
                 f(tw, delta);
             });
         },
@@ -199,6 +255,15 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
 
         //===============================================================
 
+        enterTouchable : function(tw) {
+            this.hoveredTouchable = tw;
+        },
+
+        exitTouchable : function(tw) {
+            if (this.hoveredTouchable === tw)
+                this.hoveredTouchable = undefined;
+        },
+
         addTouchable : function(name, element) {
             var t = new Touchable(this, name, element);
             this.touchables.push(t);
@@ -261,8 +326,7 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
             var timeDown = touch.lastUp.time - touch.lastDown.time;
 
             if (timeDown < 200 && touch.draggedDistance < 10) {
-                console.log("Tap");
-                controls.onTap(touch);
+                 controls.onTap(touch);
             }
 
             // Set to the local position of the active element
@@ -285,7 +349,10 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
             app.moveLog("Move: " + touch.pos);
 
             // Set to the local position of the active element
-            if (this.activeTouchable !== undefined) {
+            if (!touch.down && this.hoveredTouchable !== undefined) {
+                this.hoveredTouchable.touchMove(touch.down, touch.pos);
+            }
+            if (touch.down && this.activeTouchable !== undefined) {
                 this.activeTouchable.touchMove(touch.down, touch.pos);
             }
 

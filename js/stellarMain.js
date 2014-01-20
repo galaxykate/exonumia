@@ -92,8 +92,8 @@ require.config({
     }
 });
 
-require(["./modules/medalia/medalApp"], function(MedaliaApp) {
-    var app = new MedaliaApp();
+require(["./modules/stellar/stellarApp"], function(StellarApp) {
+    var app = new StellarApp();
     app.start();
     console.log("Start");
 

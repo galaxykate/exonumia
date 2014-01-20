@@ -11,6 +11,7 @@ define(["common"], function(common) {'use strict';
 
         // Create a panel
         // The options overlay the default options
+        // Options: id, title, description, side [right, left, top, bottom], dimensions (vector)
         init : function(options) {
 
             // Default options
@@ -22,10 +23,7 @@ define(["common"], function(common) {'use strict';
             this.side = "right";
             this.sidePos = Math.random() * 500;
 
-            this.dimensions = {
-                x : 200,
-                y : 200,
-            };
+            this.dimensions = new Vector(300, 200);
 
             // Overlay all the custom options
             $.extend(this, options);
@@ -39,7 +37,6 @@ define(["common"], function(common) {'use strict';
             this.openState.setDimensions(this.dimensions);
             this.closedState.setDimensions(this.dimensions);
 
-          
             // set the positions
 
             var offsetClosed = closedShowing;
@@ -70,8 +67,8 @@ define(["common"], function(common) {'use strict';
         open : function() {
             this.div.css(this.openState.toCSS());
         },
-        
-        toString: function() {
+
+        toString : function() {
             return "Panel " + this.id;
         }
     });

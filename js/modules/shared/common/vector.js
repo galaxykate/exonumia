@@ -29,6 +29,9 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
 
                 }
             }
+
+            if (!this.isValid())
+                throw new Error(this.invalidToString() + " is not a valid vector");
         },
 
         clone : function() {
@@ -120,6 +123,8 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
                 if (z !== undefined)
                     this.z = z;
             }
+            if (!this.isValid())
+                throw new Error(this.invalidToString() + " is not a valid vector");
 
         },
 
@@ -175,8 +180,44 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
             return v.x * this.x + v.y * this.y + v.z * this.z;
         },
 
-        getAngleTo : function(v) {
+        getAngleBetween : function(v) {
             return Math.acos(this.dot(v) / (this.magnitude() * v.magnitude()));
+        },
+
+        isInTriangle : function(triangle) {
+
+            //credit: http://www.blackpawn.com/texts/pointinpoly/default.html
+            var ax = triangle[0].x;
+            var ay = triangle[0].y;
+            var bx = triangle[1].x;
+            var by = triangle[1].y;
+            var cx = triangle[2].x;
+            var cy = triangle[2].y;
+
+            var v0 = [cx - ax, cy - ay];
+            var v1 = [bx - ax, by - ay];
+            var v2 = [this.x - ax, this.y - ay];
+
+            var dot00 = (v0[0] * v0[0]) + (v0[1] * v0[1]);
+            var dot01 = (v0[0] * v1[0]) + (v0[1] * v1[1]);
+            var dot02 = (v0[0] * v2[0]) + (v0[1] * v2[1]);
+            var dot11 = (v1[0] * v1[0]) + (v1[1] * v1[1]);
+            var dot12 = (v1[0] * v2[0]) + (v1[1] * v2[1]);
+
+            var invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+
+            var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+            var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+            return ((u >= 0) && (v >= 0) && (u + v < 1));
+
+        },
+
+        isInPolygon : function(poly) {
+            var pt = this;
+            for (var c = false, i = -1, l = poly.length, j = l - 1; ++i < l; j = i)
+                ((poly[i].y <= pt.y && pt.y < poly[j].y) || (poly[j].y <= pt.y && pt.y < poly[i].y)) && (pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x) && ( c = !c);
+            return c;
         },
 
         //===========================================================
@@ -232,6 +273,7 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
         //===========================================================
         //===========================================================
         isValid : function() {
+
             return (!isNaN(this.x) && !isNaN(this.y) && !isNaN(this.z) ) && this.x !== undefined && this.y !== undefined && this.z !== undefined;
         },
 
@@ -246,6 +288,10 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
 
         bezier : function(g, c0, c1) {
             g.bezierVertex(c0.x, c0.y, c1.x, c1.y, this.x, this.y);
+        },
+
+        bezierTo : function(g, c0, c1, p) {
+            g.bezier(this.x, this.y, c0.x, c0.y, c1.x, c1.y, p.x, p.y);
         },
         bezierWithRelativeControlPoints : function(g, p, c0, c1) {
             // "x" and "y" were not defined, so I added "this." in front. Hopefully that's the intended action (April)
@@ -285,6 +331,10 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
             g.line(this.x, this.y, r * Math.cos(theta) + this.x, r * Math.sin(theta) + this.y);
         },
 
+        drawAngleBall : function(g, r, theta, radius) {
+            g.ellipse(r * Math.cos(theta) + this.x, r * Math.sin(theta) + this.y, radius, radius);
+        },
+
         drawArc : function(g, r, theta0, theta1) {
             var range = theta1 - theta0;
             var segments = Math.ceil(range / .2);
@@ -294,6 +344,9 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
             }
         },
 
+        drawText : function(g, s, xOffset, yOffset) {
+            g.text(s, this.x + xOffset, this.y + yOffset);
+        },
         //===========================================================
         //===========================================================
         toThreeVector : function() {
@@ -305,6 +358,14 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
 
         toB2D : function() {
             return new Box2D.b2Vec2(this.x, -this.y);
+        },
+
+        toCSSDimensions : function() {
+            return {
+                width : this.x + "px",
+                height : this.y + "px",
+
+            }
         },
 
         //===========================================================
@@ -339,6 +400,13 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
         return Vector.dot(a, b) / (a.magnitude() * b.magnitude());
     };
 
+    Vector.addMultiples = function(u, m, v, n) {
+        var p = new Vector();
+        p.addMultiple(u, m);
+        p.addMultiple(v, n);
+        return p;
+    };
+
     Vector.average = function(array) { Vector
         avg = new Vector();
         $.each(array, function(index, v) {
@@ -347,6 +415,7 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
         avg.div(array.length);
         return avg;
     };
+
     return Vector;
 
 });
