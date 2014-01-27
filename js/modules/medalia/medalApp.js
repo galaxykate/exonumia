@@ -2,6 +2,22 @@
  * @author Kate Compton
  */
 
+var mottos = ["Sine scientia ars nihil est"];
+var fontChoices = {
+    gentilis : {
+        name : "Gentilis",
+        bold : "gentilis_bold",
+        regular : "gentilis_regular",
+
+    },
+
+    helvetiker : {
+        name : "Helvetiker",
+        bold : "helvetiker_bold",
+        regular : "helvetiker_regular",
+    }
+};
+
 define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common, threeUtils, Coin) {
     var w = 500;
     var h = 500;
@@ -9,24 +25,88 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
     var MedalApp = App.extend({
 
         init : function() {
-            window.watch("app", function() {
-                console.log("app changed to " + app);
-            });
 
-            this._super("Medals", new Vector(w, h));
+            this.textLines = [];
+            this.textLineCount = 0;
 
-            app.paused = false;
+            this._super("MedalsApp", new Vector(w, h));
+
+            this.paused = false;
 
             this.changeMode("drawing");
 
-            this.coin = new Coin();
-            app.threeRender.scene.add(app.coin.mesh);
+            this.coin = new Coin(this);
+            console.log(this + ": coin: " + this.coin);
+            this.threeRender.scene.add(this.coin.mesh);
+
+            // Font choices
+            app.fontSelectionOptions = "";
+            for (var key in fontChoices) {
+                if (fontChoices.hasOwnProperty) {
+                    var font = fontChoices[key];
+                    app.fontSelectionOptions += "<option value='" + key + "'> " + font.name + "</option>";
+                }
+            };
+
+            console.log(app.fontSelectionOptions);
+
+            var textFields = [$("#textLine1")];
+
+            $.each(textFields, function(index, field) {
+                field.val("Hello");
+                field.on('input', function() {
+                    console.log(field.val());
+                    app.coin.changeTextLine(index, field.val());
+
+                });
+
+            });
+
+            $("#new_text").click(function() {
+                app.addNewTextLine();
+            });
 
         },
 
+        //================================================================
+
+        addNewTextLine : function() {
+            console.log("add new text line");
+            var textLineHolder = $("#text_panel");
+
+            var idNumber = this.textLineCount;
+            // Create the div
+            var textLine = {
+                idNumber : idNumber,
+                div : $("<div/>", {
+                    html : "text:",
+                    id : "textLine" + idNumber,
+                    "class" : "subpanel textLine"
+                }),
+                textArea : $("<textarea/>", {
+                    rows : 1,
+                    cols : 20,
+                    html : utilities.getRandom(mottos),
+                }),
+
+                fontChoice : $("<select/>", {
+                    html : app.fontSelectionOptions,
+                })
+            };
+
+            textLine.div.append(textLine.textArea);
+            textLine.div.append(textLine.fontChoice);
+
+            textLineHolder.append(textLine.div);
+
+            this.textLineCount++;
+        },
+
+        //================================================================
+
         initModes : function() {
 
-            var ui = app.ui;
+            var ui = this.ui;
 
             // Create modes:
             // Each mode has some panels that only appear during that mode, and
@@ -35,8 +115,9 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
             this.modes = {
 
                 drawing : new UI.Mode({
+                    app : this,
                     title : "drawing",
-                    panels : app.ui.getPanels(),
+                    panels : this.ui.getPanels(),
                     // Control mapping
 
                 }),
@@ -48,9 +129,8 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
             });
 
         },
-
         initControls : function() {
-
+            var app = this;
             // Set all the default UI controls
             app.controls = new UI.Controls($("body"), {
 
@@ -69,40 +149,42 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
                     },
                 },
 
-            });
+            }, app);
 
             var touchRender = app.controls.addTouchable("three", $("#three_panel"));
             var touchDraw = app.controls.addTouchable("drawing", $("#drawing_canvas"));
-            touchRender.onDrag(function(touchwindow, p) {
-                var cam = app.threeRender.camera;
-                cam.orbit.theta = p.x * -.003;
-                cam.orbit.phi = -p.y * .004 + 1.7;
-                console.log(p);
-                cam.updateOrbit();
+            var cam = app.threeRender.camera;
 
+            touchRender.onDrag(function(touchwindow, p, dragOffset) {
+                cam.offsetFromBookmark(-0.007 * dragOffset.x, 0.01 * dragOffset.y);
+                cam.updateOrbit();
             });
+
             touchRender.onUp(function(touchwindow, p) {
                 app.pauseSpinning = false;
             });
 
             touchRender.onDown(function(touchwindow, p) {
+                console.log("ON DOWN");
+                cam.bookmark();
                 app.pauseSpinning = true;
             });
 
             touchRender.onScroll(function(touchwindow, delta) {
                 var cam = app.threeRender.camera;
                 cam.orbit.distance *= 1 + .03 * delta;
-                cam.orbit.distance = utilities.constrain(cam.orbit.distance, 200, 1000);
-                console.log(delta + " " + cam.orbit.distance);
+                cam.orbit.distance = utilities.constrain(cam.orbit.distance, 300, 1200);
                 cam.updateOrbit();
 
             });
 
             touchDraw.onDrag(function(touchwindow, p) {
-                var x = p.x - touchwindow.rect.w / 2;
-                var y = p.y - touchwindow.rect.h / 2;
-                app.coin.designTransform.setTo(x, y, 0);
-                console.log(app.coin.designTransform);
+                app.coin.designTransform.setTo(p.x, p.y, 0);
+            });
+
+            touchDraw.onMove(function(touchwindow, p) {
+                app.coin.selectAt(new Vector(p.x, p.y));
+
             });
 
             touchDraw.onScroll(function(touchwindow, delta) {
@@ -111,10 +193,51 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
 
             });
         },
-
         initUI : function() {
-
             var ui = this.ui;
+
+            $('input').keypress(function(e) {
+                e.stopPropagation();
+            });
+
+            // Tunign values and options
+            ui.addTuningValue("hamsteropacity", 50, 1, 100, function() {
+
+            });
+
+            ui.addOption("useGraphic", true, function() {
+            });
+            ui.addOption("drawBoundingBox", true, function() {
+            });
+            function updateCoin() {
+                app.coin.changeBorder({
+                    sides : app.getTuningValue("sides"),
+                    peakTilt : app.getTuningValue("peakTilt"),
+                    upperWidth : app.getTuningValue("upperWidth"),
+                    lowerWidth : app.getTuningValue("lowerWidth"),
+                    spin : app.getTuningValue("spin"),
+                });
+            }
+
+
+            ui.addTuningValue("sides", 8, 4, 16, function() {
+                updateCoin();
+            });
+
+            ui.addTuningValue("upperWidth", 1, 0, 3, function() {
+                updateCoin();
+            });
+            ui.addTuningValue("lowerWidth", 1, 0, 3, function() {
+                updateCoin();
+            });
+
+            ui.addTuningValue("peakTilt", 0, -1.85, 1.85, function() {
+                updateCoin();
+            });
+
+            ui.addTuningValue("spin", 0, -1.85, 1.85, function() {
+                updateCoin();
+            });
 
             // Create the Three scene
             app.threeRender = new threeUtils.ThreeView($("#three_panel"), function() {
@@ -122,12 +245,14 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
 
                 if (!app.pauseSpinning) {
                     this.camera.orbit.theta += .01;
-
-                    this.camera.orbit.phi = .93;
                 }
                 // app.log(this.camera.orbit.theta);
                 this.camera.updateOrbit();
             });
+
+            var cam = app.threeRender.camera;
+            cam.orbit.distance = 600;
+            cam.updateOrbit();
 
             app.threeWindow = new UI.DrawingWindow("3D Bot View", $("#three_panel"));
             app.drawingWindow = new UI.DrawingWindow("drawing", $("#drawing_canvas"));
@@ -144,11 +269,12 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
                     app.ui.output.clear();
                     if (!app.paused) {
                         app.worldTime.updateTime(g.millis() * .001);
-
+                        app.coin.update(app.worldTime);
                         app.drawingWindow.render(function(context) {
                             g.background(.55, 1, 1);
+                            if (app.coin)
+                                app.coin.draw(g);
 
-                            app.coin.draw(g);
                         });
                     }
                 }

@@ -93,8 +93,9 @@ require.config({
 });
 
 require(["./modules/medalia/medalApp"], function(MedaliaApp) {
-    var app = new MedaliaApp();
-    app.start();
+    var medalApp = new MedaliaApp();
+    console.log("Medal app: " + medalApp);
+    medalApp.start();
     console.log("Start");
 
 });

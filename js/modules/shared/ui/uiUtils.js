@@ -8,6 +8,58 @@
 var prefix = "modules/shared/ui/";
 define(["common", "processing", prefix + "panel", prefix + "controls", prefix + "popup", prefix + "mode", prefix + "output", prefix + "window"], function(common, Processing, Panel, Controls, Popup, Mode, Output, DrawingWindow) {'use strict';
 
+    var addSlider = function(parent, key, defaultValue, minValue, maxValue, onChange) {
+
+        // Create an empty slider div
+        var optionDiv = $("<div/>", {
+        });
+        optionDiv.css({
+            "pointer-events" : "auto"
+        });
+        parent.append(optionDiv);
+
+        var slider = $('<div />', {
+            id : 'slider_' + key,
+            class : "tuning_slider",
+            value : key
+        });
+
+        var step = maxValue - minValue;
+        if (step < 10)
+            step = .1;
+        else
+            step = 1;
+
+        slider.appendTo(optionDiv);
+        slider.slider({
+            range : "min",
+            value : defaultValue,
+            min : minValue,
+            max : maxValue,
+            step : step,
+            slide : function(event, ui) {
+                $("#" + key + "amt").text(ui.value);
+                console.log("Slide " + ui.value);
+                if (onChange !== undefined) {
+                    onChange(key, ui.value);
+                }
+            }
+        });
+
+        // Create a lable
+        $('<label />', {
+            'for' : 'slider_' + key,
+            text : key + ": "
+        }).appendTo(optionDiv);
+
+        // Create a lable
+        $('<span />', {
+            id : key + "amt",
+            text : defaultValue
+        }).appendTo(optionDiv);
+
+        return slider;
+    };
     //==============================================================
     //==============================================================
     //==============================================================
@@ -19,6 +71,7 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             this.modes = {
 
             };
+
             this.panels = {};
             this.options = {};
             this.tuningValues = {};
@@ -51,13 +104,18 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
         },
 
         addPanel : function(options) {
+            options.app = this.app;
+            console.log("UI app: " + this.app);
             this.panels[options.id] = new Panel(options);
         },
 
         getPanels : function(names) {
             var ui = this;
             var panels = _.map(names, function(name) {
-                return ui.panels[name];
+                var panel = ui.panels[name];
+                if (panel === undefined)
+                    throw ("Cannot find panel '" + name + "'");
+                return panel;
             });
 
             console.log("Get Panels " + names + " -> " + panels);
@@ -107,6 +165,7 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
 
             $.extend(this.panels, {
                 devOutput : new Panel({
+                    app: ui.app,
                     title : "Dev Output",
                     div : $("#dev_output"),
                     dimensions : new Vector(w, h),
@@ -115,7 +174,8 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
                 }),
 
                 devOptions : new Panel({
-                    title : "Dev Options",
+                        app: ui.app,
+                title : "Dev Options",
                     div : $("#dev_options"),
                     dimensions : new Vector(w, h),
                     side : "top",
@@ -123,7 +183,8 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
                 }),
 
                 devSliders : new Panel({
-                    title : "Dev Tuning Values",
+                        app: ui.app,
+                title : "Dev Tuning Values",
                     div : $("#dev_sliders"),
                     dimensions : new Vector(w, h),
                     side : "top",
@@ -182,56 +243,31 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             });
 
         },
+
         addTuningValue : function(key, defaultValue, minValue, maxValue, onChange) {
             var ui = this;
-
-            var optionDiv = $("<div/>", {
-
-            });
-
             var parent = this.panels.devSliders.div;
-            parent.append(optionDiv);
-
-            var slider = $('<div />', {
-                id : 'slider_' + key,
-                class : "tuning_slider",
-                value : key
-            });
-
-            slider.appendTo(optionDiv);
-            slider.slider({
-                range : "min",
-                value : 37,
-                min : 1,
-                max : 700,
-                slide : function(event, ui) {
-                    $("#amount").val("$" + ui.value);
-                }
-            });
-
-            $('<label />', {
-                'for' : 'slider_' + key,
-                text : key
-            }).appendTo(optionDiv);
+            var uiOnChange = function(key, value) {
+                ui.tuningValues[key].value = value;
+                onChange(key, value);
+            }
+            var slider = addSlider(parent, key, defaultValue, minValue, maxValue, uiOnChange);
 
             ui.tuningValues[key] = {
                 value : defaultValue,
                 slider : slider,
             };
 
-            slider.click(function() {
-                ui.tuningValues[key].value = slider.value
-                console.log(key + ": " + ui.tuningValues[key].value);
-                if (onChange !== undefined) {
-                    onChange(key, ui.tuningValues[key].value);
-                }
-            });
-
         },
+
         addPopupManager : function(id, manager) {
             this.popupManagers[id] = manager;
             return manager;
         },
+
+        createSlider : function() {
+
+        }
     });
 
     UI.Controls = Controls;

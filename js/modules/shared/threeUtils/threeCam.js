@@ -5,25 +5,29 @@
 define(["common", "three"], function(common, THREE) {'use strict';
     var threeToString = function(v) {
         return "(" + v.x.toFixed(2) + "," + v.y.toFixed(2) + "," + v.z.toFixed(2) + ")";
-    }
-    var ThreeCam = Class.extend({
+    };
+
+    var ThreeCam = Vector.extend({
         init : function(w, h) {
+            this._super();
             this.projector = new THREE.Projector();
             this.w = w;
             this.h = h;
-            this.center = new Vector();
+
             this.orbit = {
                 position : new Vector(),
                 distance : 200,
                 phi : .4,
-                theta : .95
+                theta : .95,
+                phiMin : -.7,
+                phiMax : 1.4,
             }
 
             this.forward = new THREE.Vector3(0, 1, 0);
             this.right = new THREE.Vector3(1, 0, 0);
             this.up = new THREE.Vector3(0, 0, 1);
 
-            this.screenCenter = new Vector(w * .5, h * .5);
+            this.screenCenter = new Vector(0, 0);
 
             // Make a camera
             var VIEW_ANGLE = 45, ASPECT = w / h, NEAR = 0.1, FAR = 10000;
@@ -99,25 +103,36 @@ define(["common", "three"], function(common, THREE) {'use strict';
         },
 
         bookmark : function() {
+            console.log("Bookmark " + this);
             this.bookmarkOrbit = this.cloneOrbit(this.orbit);
         },
 
         offsetFromBookmark : function(dTheta, dPhi) {
+            if (!this.bookmarkOrbit)
+                throw ("Can't offset from non-existant bookmark");
             this.copyInto(this.bookmarkOrbit, this.orbit);
             this.orbit.theta += dTheta;
+
             this.orbit.phi += dPhi;
+            this.orbit.phi = utilities.constrain(this.orbit.phi, this.orbit.phiMin, this.orbit.phiMax);
             this.updateOrbit();
+        },
+
+        clearBookmark : function(reset) {
+            console.log("Clear bookmark for " + this);
+            //   this.copyInto(this.bookmarkOrbit, this.orbit);
+            this.bookmarkOrbit = undefined;
         },
 
         updateOrbit : function() {
             var camera = this.camera;
 
-            this.orbit.position.setTo(this.center);
+            this.orbit.position.setTo(this);
             this.orbit.position.addSpherical(this.orbit.distance, this.orbit.theta, this.orbit.phi);
 
             camera.position.copy(this.orbit.position);
             camera.up = new THREE.Vector3(0, 0, 1);
-            camera.lookAt(this.center);
+            camera.lookAt(this);
 
             camera.updateMatrix();
             // make sure camera's local matrix is updated

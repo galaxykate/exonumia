@@ -1,64 +1,117 @@
 /**
  * @author Kate Compton
  */
-define(["common", "graph", "threeUtils"], function(common, graph, threeUtils) {
+define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, threeUtils, TextArea) {
     var svgs = ["tricky", "cw", "ccw", "flower", "Tiki_Statue", "bird", "testshape2", "labyrinth"];
+
     var Coin = Class.extend({
-        init : function() {
+        init : function(app) {
+            var coin = this;
 
-            this.regions = [];
-
-            this.path = new graph.CurvePath();
-            this.sourceIndex = 0;
-
-            var sides = 40;
-            this.radius = 100;
-            var handleW = 2.8 * this.radius / sides;
-            this.designTransform = new common.Transform();
-
-            var dTheta = Math.PI * 2 / sides;
-            for (var i = 0; i < sides; i++) {
-                var theta = i * dTheta;
-                var offset = (i % 2);
-                var r = this.radius * (1 - .1 * offset);
-                var w = handleW * (1 - .5 * offset);
-                var pt = new graph.PathPoint(r * Math.cos(theta), r * Math.sin(theta), w, w, theta - Math.PI / 2);
-                this.path.addPoint(pt);
-
-            }
-
-            this.mesh = this.path.createThreeMesh({
-                rings : 3,
-                capRings : 5,
-                height : 40,
+            this.material = new THREE.MeshLambertMaterial({
+                color : 0xffffff,
+                ambient : 0xaaaaaa,
+                shading : THREE.FlatShading
             });
 
-            this.loadPathsFromSVG();
+            this.border = new Graph.Path();
+            this.mesh = new THREE.Object3D();
+            this.mesh.name = "coin";
+            this.sourceIndex = 0;
+
+            this.designTransform = new common.Transform();
+
+            this.changeBorder({
+                sides : 8
+            });
+
+            //==========
+            // Lights and shading
+            var light = new THREE.PointLight(0xffffff, 1);
+            light.position.set(150, 350, 350);
+            this.mesh.add(light);
+
+            this.embossingShapes = new Graph.Shape.ShapeSet();
+
+            this.textMesh = new THREE.Object3D();
+
+            this.mesh.add(this.textMesh);
+
+            this.textAreas = [new TextArea()];
+            // Add each text area to the mesh
+            $.each(this.textAreas, function(index, area) {
+                coin.textMesh.add(area.mesh);
+
+            });
+
+            //  if (app.getOption("useGraphic"))
+            //    this.loadPathsFromSVG();
+
+            this.exportToOBJ();
+        },
+
+        update : function(time) {
+
+        },
+
+        distortText : function(geo) {
+
+            // Update the geometry
+            geo.computeFaceNormals();
+            geo.verticesNeedUpdate = true;
+
+        },
+
+        changeBorder : function(settings) {
+            var defaultSettings = {
+                sides : 8,
+                radius : 90,
+                fluteDepth : .2,
+                upperWidth : 1,
+                lowerWidth : 1,
+                upperTilt : 0,
+                lowerTilt : 0,
+                peakTilt : .5,
+            }
+
+            $.extend(defaultSettings, settings);
+
+            this.mesh.remove(this.borderMesh);
+            this.border.clear();
+            Graph.addFlutedCircle(this.border, defaultSettings);
+            /*
+             this.borderMesh = this.border.createThreeMesh({
+             rings : 3,
+             capRings : 5,
+             height : 40,
+             material : this.material,
+             });
+             */
+
+            var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(80, 80, 40, 10, 10, false), new THREE.MeshNormalMaterial());
+            cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+
+            this.mesh.add(cylinder);
         },
 
         loadPathsFromSVG : function() {
             var coin = this;
-            console.log("Load SVG for: " + svgs[this.sourceIndex]);
-            console.log("Remove mesh children");
-            if (this.pathSet !== undefined) {
 
-                // Remove the region meshes and reset the regions
-                $.each(this.regions, function(index, region) {
-                    coin.mesh.remove(region.mesh);
-                })
-                coin.regions = [];
-            }
+            coin.design = new Graph("Coin Design");
+            // Load an svg into a graph
+            Graph.parseSVG(this.design, svgs[this.sourceIndex], function() {
+                //   coin.design.loftPaths();
+                coin.design.centerBoundingBox();
 
-            this.pathSet = new graph.PathSet();
-
-            this.pathSet.parseSVG(svgs[this.sourceIndex], function(pathSet) {
-                coin.regions = pathSet.calculateRegions();
-                $.each(coin.regions, function(index, region) {
-                    //     coin.mesh.add(region.createMesh());
-                });
             });
 
+            // Don't put hings here, it won't be after the loading, due to async
             this.sourceIndex = (this.sourceIndex + 1) % svgs.length;
+
+        },
+
+        selectAt : function(p) {
+            this.designTransform.toLocal(p, p);
 
         },
 
@@ -72,19 +125,27 @@ define(["common", "graph", "threeUtils"], function(common, graph, threeUtils) {
                 g : g,
                 drawPath : true,
                 useCurves : true,
+                drawHandles : false,
             }
-            this.path.draw(context);
+            //this.border.draw(context);
             g.pushMatrix();
 
             context.drawPoints = true;
             context.drawControlPoints = true;
-            //console.log(this.designTransform.toString());
-            this.designTransform.applyTransform(g);
-            this.pathSet.draw(context);
-            $.each(this.regions, function() {
-                //   this.draw(context);
+
+            this.embossingShapes.draw(context);
+
+            $.each(this.textAreas, function(index, area) {
+                area.draw(context);
             });
+
             g.popMatrix();
+        },
+
+        exportToOBJ : function() {
+            var objFile = new threeUtils.OBJFile();
+            objFile.addMesh(this.mesh);
+            objFile.chromeSave();
         }
     });
 

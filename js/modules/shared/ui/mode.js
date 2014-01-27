@@ -20,7 +20,6 @@ define(["common"], function(COMMON) {'use strict';
             // Overlay with custom context
             $.extend(this, context);
 
-   
         },
 
         toggle : function() {
@@ -34,14 +33,15 @@ define(["common"], function(COMMON) {'use strict';
         activate : function() {
             this.active = true;
             console.log("Activate Mode: " + this.title);
-        
+
             // Activate all of the panels
             $.each(this.panels, function(index, panel) {
+                console.log("  open panel: " + panel);
                 panel.open();
             });
 
             if (this.onActivate) {
-                this.onActivate();
+                this.onActivate(this);
             }
         },
 
@@ -54,7 +54,7 @@ define(["common"], function(COMMON) {'use strict';
             });
 
             if (this.onDeactivate) {
-                this.onDeactivate();
+                this.onDeactivate(this);
             }
         },
 

@@ -11,6 +11,7 @@ define(["common"], function(common) {'use strict';
 
         // Create a panel
         // The options overlay the default options
+        // Options: id, title, description, side [right, left, top, bottom], dimensions (vector)
         init : function(options) {
 
             // Default options
@@ -22,13 +23,12 @@ define(["common"], function(common) {'use strict';
             this.side = "right";
             this.sidePos = Math.random() * 500;
 
-            this.dimensions = {
-                x : 200,
-                y : 200,
-            };
+            this.dimensions = new Vector(300, 200);
 
             // Overlay all the custom options
             $.extend(this, options);
+
+            console.log("Create panel " + this.title);
 
             if (this.div === undefined) {
                 this.div = $("#" + this.id);
@@ -39,7 +39,6 @@ define(["common"], function(common) {'use strict';
             this.openState.setDimensions(this.dimensions);
             this.closedState.setDimensions(this.dimensions);
 
-          
             // set the positions
 
             var offsetClosed = closedShowing;
@@ -54,8 +53,8 @@ define(["common"], function(common) {'use strict';
             if (this.side === "bottom")
                 offsetOpen -= this.openState.h;
 
-            var closedPos = app.rect.getSidePosition(this.side, this.sidePos, offsetClosed);
-            var openPos = app.rect.getSidePosition(this.side, this.sidePos, offsetOpen);
+            var closedPos = this.app.rect.getSidePosition(this.side, this.sidePos, offsetClosed);
+            var openPos = this.app.rect.getSidePosition(this.side, this.sidePos, offsetOpen);
 
             this.openState.setPosition(openPos);
             this.closedState.setPosition(closedPos);
@@ -70,8 +69,8 @@ define(["common"], function(common) {'use strict';
         open : function() {
             this.div.css(this.openState.toCSS());
         },
-        
-        toString: function() {
+
+        toString : function() {
             return "Panel " + this.id;
         }
     });

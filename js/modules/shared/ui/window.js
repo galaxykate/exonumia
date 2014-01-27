@@ -37,6 +37,7 @@ define(["common"], function(common) {'use strict';
             g.ellipseMode(g.CENTER_RADIUS);
             var context = {
                 g : g
+
             };
 
             g.colorMode(g.HSB, 1);

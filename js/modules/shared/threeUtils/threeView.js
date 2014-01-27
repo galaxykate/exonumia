@@ -32,8 +32,8 @@ define(["common", "three", "./threeCam"], function(common, THREE, ThreeCam) {'us
             view.scene = new THREE.Scene();
             var sphere = new THREE.Mesh(new THREE.SphereGeometry(50, 10, 10), new THREE.MeshNormalMaterial());
             var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(80, 80, 40, 10, 10, false), new THREE.MeshNormalMaterial());
-            cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI/2);
-            view.scene.add(cylinder);
+            cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+            //   view.scene.add(cylinder);
 
             this.marker = new THREE.Mesh(new THREE.SphereGeometry(10, 5, 5), new THREE.MeshNormalMaterial());
             this.marker.position.x += 80;
@@ -41,8 +41,6 @@ define(["common", "three", "./threeCam"], function(common, THREE, ThreeCam) {'us
 
             // add the camera to the scene
             view.scene.add(camera);
-
-            view.addLights();
 
             this.frameCount = 0;
             function render() {

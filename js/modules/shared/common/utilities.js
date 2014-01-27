@@ -6,6 +6,9 @@ define([], function() {
 
     var utilities = {
         // put noise in here too?
+        capitaliseFirstLetter : function(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        },
 
         words : {
             animals : "amoeba mongoose capybara kangaroo boa nematode sheep quail goat agouti zebra giraffe rhino skunk dolphin whale duck bullfrog okapi sloth monkey orangutan grizzly moose elk dikdik ibis stork robin eagle hawk iguana tortoise panther lion tiger gnu reindeer raccoon opossum".split(" "),
@@ -14,6 +17,16 @@ define([], function() {
             getRandomPhrase : function() {
                 return utilities.getRandom(utilities.words.moods) + " " + utilities.getRandom(utilities.words.colors) + " " + utilities.getRandom(utilities.words.animals);
             }
+        },
+
+        arrayToString : function(array) {
+            s = "";
+            $.each(array, function(index, obj) {
+                if (index !== 0)
+                    s += ", ";
+                s += obj;
+            });
+            return s;
         },
 
         inSquareBrackets : function(s) {
@@ -90,6 +103,10 @@ define([], function() {
             return (start + percent * (end - start));
         },
 
+        lerpAngles : function(start, end, pct) {
+            var dTheta = end - start;
+        },
+
         // Rertun a random, possible between two numbers
         random : function() {
             if (arguments.length === 0)
@@ -113,7 +130,7 @@ define([], function() {
 
         angleBetween : function(a, b) {
             var dTheta = b - a;
-            dTheta = ((dTheta%(Math.PI*2)) + Math.PI*2)%(Math.PI * 2);
+            dTheta = ((dTheta % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
             if (dTheta > Math.PI)
                 dTheta -= Math.PI * 2;
             return dTheta;

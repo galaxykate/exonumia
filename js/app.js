@@ -1,8 +1,8 @@
 /**
  * @author Kate Compton
  */
-
 var app;
+
 define(["ui", "common"], function(UI, common) {
 
     var Time = Class.extend({
@@ -20,7 +20,7 @@ define(["ui", "common"], function(UI, common) {
         },
 
         updateTime : function(t) {
-           
+
             this.ellapsed = t - this.total;
             this.total = t;
         },
@@ -33,8 +33,10 @@ define(["ui", "common"], function(UI, common) {
     var App = Class.extend({
 
         init : function(name, dimensions) {
+            this.name = name;
+            console.log("INIT APP " + this);
+
             app = this;
-            console.log("app", app);
             app.div = $("#app");
 
             app.dimensions = dimensions;
@@ -48,14 +50,10 @@ define(["ui", "common"], function(UI, common) {
             });
 
             app.ui.addDevUI($("#dev_controls"));
-
-            console.log(name + ": INIT UI");
             this.initUI();
 
-            console.log(name + ": INIT CONTROLS");
             this.initControls();
 
-            console.log(name + ": INIT MODES");
             this.initModes();
 
             this.touch = this.controls.touch;
@@ -67,7 +65,6 @@ define(["ui", "common"], function(UI, common) {
             // Set the starting time of the app
             var date = new Date();
             this.startTime = date.getTime();
-            console.log(name + ": Started at " + this.startTime);
 
         },
 
@@ -122,15 +119,23 @@ define(["ui", "common"], function(UI, common) {
         //========================================
         // option/tuning value accessors
         getOption : function(key) {
-            return app.ui.options[key].value;
+            if (app.ui.options[key] !== undefined)
+                return app.ui.options[key].value;
+            return false;
         },
 
         getTuningValue : function(key) {
-            return app.ui.tuningValues[key].value;
+            if (app.ui.tuningValues[key]) {
+                return app.ui.tuningValues[key].value;
+            }
+            return 0;
         },
         //========================================
         // time
 
+        toString : function() {
+            return "App:" + this.name;
+        }
     });
 
     return App;
