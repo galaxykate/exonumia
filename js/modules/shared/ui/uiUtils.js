@@ -92,7 +92,8 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             var processingInstance = new Processing(canvas, function sketchProc(processing) {
                 // Setup
                 processing.size(div.width(), div.height());
-
+                processing.colorMode(processing.HSB, 1);
+                processing.ellipseMode(processing.CENTER_RADIUS);
                 setupFunc(processing);
 
                 // Override draw function, by default it will be called 60 times per second

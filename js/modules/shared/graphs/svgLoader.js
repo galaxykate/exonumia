@@ -163,6 +163,8 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
     //   commands and thus be a series of closed or non-closed paths
     var parseSVG = function(graph, filename, callback) {
 
+        console.log("Load from SVG: " + filename);
+
         var parser = new DOMParser();
         $.ajax({
             url : "svg/" + filename + ".svg",

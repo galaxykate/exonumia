@@ -45,7 +45,6 @@ define([prefix + "edge", prefix + "graph", prefix + "path", prefix + "svgLoader"
             if (last !== undefined) {
                 var e = new Edge(last, pt);
 
-           //     e.setHandles(lastR, handleR, lastTheta + Math.PI / 2 + settings.peakTilt, theta + Math.PI / 2 + settings.peakTilt);
                 path.edges.push(e);
             }
 

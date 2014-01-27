@@ -14,17 +14,27 @@ define(["ui", "common"], function(UI, common) {
 
         },
 
+        addTimeSpan : function(timespan) {
+            this.timespans.add(timespan);
+        },
+
         addElapsed : function(t) {
             this.ellapsed = t;
             this.total += t;
         },
-
         updateTime : function(t) {
+            if (isNaN(t)) {
+                throw ("Update time " + this.name + " with bad total value " + t);
+            }
 
             this.ellapsed = t - this.total;
-            this.total = t;
-        },
+            if (isNaN(this.ellapsed) || this.ellapsed < .001 && this.ellapsed > 1) {
+                throw ("Update time " + this.name + " with bad ellapsed value " + this.ellapsed);
 
+            }
+            this.total = t;
+            this.timespans.update(this.ellapsed);
+        },
         toString : function() {
             return this.name + ": " + this.total.toFixed(2) + "(" + this.ellapsed.toFixed(3) + ")";
         }

@@ -100,7 +100,7 @@ define([], function() {
             $.each(rgb, function(index, val) {
                 vals += Math.round(val) + ", ";
             });
-            vals += "1";
+            vals += this.a;
             return "rgba(" + vals + ")";
         };
 

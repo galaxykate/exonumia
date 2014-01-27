@@ -42,7 +42,6 @@ html, body {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	border: 2px solid white;
 	overflow: hidden;
 	background: rgba(200, 210, 210, .2);
 }
@@ -72,32 +71,24 @@ html, body {
 	z-index: 60;
 	height: 20px;
 }
-.popup {
-	position: absolute;
-	border: 2px solid white;
-	background: rgba(200, 210, 210, .8);
-	box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, .4);
-	overflow: hidden;
-	transition: all .3s ease-in-out;
-}
+
 .popup_hidden {
-	width: 0px;
-	height: 0px;
-	padding: 0px;
-	margin: -5px;
+
 	opacity: 0px;
+	-webkit-transform: translate(0px, 0px) rotateX(90deg) scale3d(.4, .4, .4);
 }
+
 .popup_active {
-	width: 100px;
-	height: 20px;
+	width: 150px;
 	padding: 6px;
 	margin: 6px;
 	border-radius: 15px;
+	pointer-events: all;
 }
+
 .bar {
 	padding: 12px;
 	position: absolute;
-	border: 2px solid white;
 	background: rgba(200, 210, 210, .8);
 	width: 100%;
 	height: 200px;
@@ -107,9 +98,7 @@ html, body {
 }
 .panel {
 	font-size: 70%;
-
 	position: absolute;
-	border: 2px solid white;
 	background: rgba(200, 210, 210, .8);
 	width: 200px;
 	height: 200px;

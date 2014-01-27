@@ -10,25 +10,25 @@ define(["inheritance"], function(Inheritance) {
 
             // default values
             this.lifespan = 1;
-            this.ellapsed = 0;
+            this.total = 0;
             // Translate all the context into this
             $.extend(this, context);
         },
 
         start : function(startTime) {
             this.startTime = startTime;
-            this.ellapsed = 0;
+            this.total = 0;
 
             if (this.onStart)
-                this.onStart(t);
+                this.onStart(startTime);
         },
 
         increment : function(ellapsed) {
-            this.ellapsed += ellapsed;
+            this.total += ellapsed;
             if (this.onChange)
-                this.onChange(this.ellapsed, this.getPct());
+                this.onChange(this.total, this.getPct());
 
-            if (this.ellapsed > this.lifespan)
+            if (this.total > this.lifespan)
                 this.finish();
         },
 
@@ -41,7 +41,7 @@ define(["inheritance"], function(Inheritance) {
         },
 
         getPct : function() {
-            return (this.ellapsed) / this.lifespan;
+            return (this.total) / this.lifespan;
         },
 
         drawClock : function(g, center, radius) {
@@ -56,7 +56,7 @@ define(["inheritance"], function(Inheritance) {
         },
 
         toString : function() {
-            return this.ellapsed + "/" + this.lifespan + " = " + this.getPct();
+            return this.total + "/" + this.lifespan + " = " + this.getPct();
         },
     });
 
