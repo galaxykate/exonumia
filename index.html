@@ -8,7 +8,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<title>Per aspera ad astra.</title>
+		<title>Ars non habet inimicum nisi igornatem.</title>
 		<meta name="description" content="">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -32,18 +32,30 @@
 
 		<div id="app" class="app_size" >
 
-			<div id="drawing_panel" class="mainpanel">
+			<div id="drawing_panel" class="mainpanel vert_panel">
 
-				<canvas id="drawing_canvas" class="full_canvas"></canvas>
+				<canvas id="drawing_canvas" class="full_canvas vert_panel"></canvas>
 			</div>
-			<div id="three_panel" class="mainpanel">
-				<div id="user_controls" class="panel">
+			<div id="three_panel" class="mainpanel vert_panel">
+
+			</div>
+			<div id="user_controls" class="mainpanel">
+
+				<div class="panel_holder">
 					<div id="text_panel"></div>
 					<button id="new_text">
 						New Text Line
 					</button>
-
 				</div>
+				<div class="panel_holder">
+					<div id="medallion_panel"></div>
+					<button id="new_medallion">
+						New Medallion
+					</button>
+				</div>
+				<button id="export">
+					Export
+				</button>
 			</div>
 
 			<div id="ui" class="app_size app_overlay">
@@ -56,10 +68,12 @@
 
 		</div>
 
+		<!--
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 		<script>
-            window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')
+		window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')
 		</script>
+		-->
 		<script src="js/plugins.js"></script>
 		<script data-main="js/medalMain" src="js/vendor/require.js"></script>
 

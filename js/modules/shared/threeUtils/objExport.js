@@ -121,7 +121,7 @@ define(["common"], function(common) {"use strict";
             var textFileAsBlob = new Blob([textToWrite], {
                 type : 'text/plain'
             });
-            var fileNameToSaveAs = "xyzlog";
+            var fileNameToSaveAs = "mycoin.obj";
 
             var downloadLink = document.createElement("a");
             downloadLink.download = fileNameToSaveAs;

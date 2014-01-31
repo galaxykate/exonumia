@@ -6,6 +6,8 @@ body {
 html, body {
 	height: 100%;
 	overflow: hidden;
+	font-size: 90%;
+	line-height: 1.4;
 }
 
 #ui {
@@ -32,11 +34,6 @@ html, body {
 	-webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
 }
 
-#control_bar {
-	z-index: 100;
-	top: -30px;
-	position: absolute;
-}
 #app {
 	user-select: none;
 	position: absolute;
@@ -45,6 +42,7 @@ html, body {
 	overflow: hidden;
 	background: rgba(200, 210, 210, .2);
 }
+
 .tuning_slider {
 	width: 150px;
 	height: 5px;
@@ -54,22 +52,6 @@ html, body {
 	position: absolute;
 	width: 150px;
 	height: 100%;
-}
-#star_info {
-	width: 150px;
-	height: 300px;
-}
-
-#bot_logo {
-	float: left;
-	background-image: url('img/temp-bot.png');
-	width: 20px;
-	height: 20px;
-	background-size: 100%;
-}
-#control_bar {
-	z-index: 60;
-	height: 20px;
 }
 
 .popup_hidden {
@@ -106,4 +88,9 @@ html, body {
 	border-radius: 15px;
 	overflow: hidden;
 	transition: all .3s ease-in-out;
+}
+
+.tuning_slider {
+	float: right;
+	width: 100px;
 }

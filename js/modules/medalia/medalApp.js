@@ -18,7 +18,7 @@ var fontChoices = {
     }
 };
 
-define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common, threeUtils, Coin) {
+define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLine"], function(UI, App, common, threeUtils, Coin, Medallion, TextLine) {
     var w = 500;
     var h = 500;
 
@@ -50,56 +50,35 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
 
             console.log(app.fontSelectionOptions);
 
-            var textFields = [$("#textLine1")];
-
-            $.each(textFields, function(index, field) {
-                field.val("Hello");
-                field.on('input', function() {
-                    console.log(field.val());
-                    app.coin.changeTextLine(index, field.val());
-
-                });
-
-            });
+            //this.addNewMedallion();
+              this.addNewTextLine();
 
             $("#new_text").click(function() {
                 app.addNewTextLine();
+            });
+            $("#new_medallion").click(function() {
+                app.addNewMedallion();
+            });
+
+            $("#export").click(function() {
+                app.coin.exportToOBJ();
             });
 
         },
 
         //================================================================
 
+        addNewMedallion : function() {
+            var medallionHolder = $("#medallion_panel");
+            var medallion = new Medallion(medallionHolder);
+            app.coin.addMedallion(medallion);
+        },
+
         addNewTextLine : function() {
-            console.log("add new text line");
-            var textLineHolder = $("#text_panel");
+            var textHolder = $("#text_panel");
+            var text = new TextLine(textHolder);
+            app.coin.addTextLine(text);
 
-            var idNumber = this.textLineCount;
-            // Create the div
-            var textLine = {
-                idNumber : idNumber,
-                div : $("<div/>", {
-                    html : "text:",
-                    id : "textLine" + idNumber,
-                    "class" : "subpanel textLine"
-                }),
-                textArea : $("<textarea/>", {
-                    rows : 1,
-                    cols : 20,
-                    html : utilities.getRandom(mottos),
-                }),
-
-                fontChoice : $("<select/>", {
-                    html : app.fontSelectionOptions,
-                })
-            };
-
-            textLine.div.append(textLine.textArea);
-            textLine.div.append(textLine.fontChoice);
-
-            textLineHolder.append(textLine.div);
-
-            this.textLineCount++;
         },
 
         //================================================================
@@ -156,7 +135,7 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
             var cam = app.threeRender.camera;
 
             touchRender.onDrag(function(touchwindow, p, dragOffset) {
-                cam.offsetFromBookmark(-0.007 * dragOffset.x, 0.01 * dragOffset.y);
+                cam.offsetFromBookmark(0.007 * dragOffset.x, 0.01 * dragOffset.y);
                 cam.updateOrbit();
             });
 
@@ -179,7 +158,7 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
             });
 
             touchDraw.onDrag(function(touchwindow, p) {
-                app.coin.designTransform.setTo(p.x, p.y, 0);
+                //         app.coin.designTransform.setTo(p.x, p.y, 0);
             });
 
             touchDraw.onMove(function(touchwindow, p) {
@@ -188,8 +167,8 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
             });
 
             touchDraw.onScroll(function(touchwindow, delta) {
-                app.coin.designTransform.scale *= 1 + .03 * delta;
-                app.coin.designTransform.scale = utilities.constrain(app.coin.designTransform.scale, .3, 3);
+                //    app.coin.designTransform.scale *= 1 + .03 * delta;
+                //  app.coin.designTransform.scale = utilities.constrain(app.coin.designTransform.scale, .3, 3);
 
             });
         },
@@ -209,49 +188,20 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
             });
             ui.addOption("drawBoundingBox", true, function() {
             });
-            function updateCoin() {
-                app.coin.changeBorder({
-                    sides : app.getTuningValue("sides"),
-                    peakTilt : app.getTuningValue("peakTilt"),
-                    upperWidth : app.getTuningValue("upperWidth"),
-                    lowerWidth : app.getTuningValue("lowerWidth"),
-                    spin : app.getTuningValue("spin"),
-                });
-            }
-
-
-            ui.addTuningValue("sides", 8, 4, 16, function() {
-                updateCoin();
-            });
-
-            ui.addTuningValue("upperWidth", 1, 0, 3, function() {
-                updateCoin();
-            });
-            ui.addTuningValue("lowerWidth", 1, 0, 3, function() {
-                updateCoin();
-            });
-
-            ui.addTuningValue("peakTilt", 0, -1.85, 1.85, function() {
-                updateCoin();
-            });
-
-            ui.addTuningValue("spin", 0, -1.85, 1.85, function() {
-                updateCoin();
-            });
 
             // Create the Three scene
             app.threeRender = new threeUtils.ThreeView($("#three_panel"), function() {
                 // update the camera
 
                 if (!app.pauseSpinning) {
-                    this.camera.orbit.theta += .01;
+                    this.camera.orbit.theta -= .01;
                 }
                 // app.log(this.camera.orbit.theta);
                 this.camera.updateOrbit();
             });
 
             var cam = app.threeRender.camera;
-            cam.orbit.distance = 600;
+            cam.orbit.distance = 700;
             cam.updateOrbit();
 
             app.threeWindow = new UI.DrawingWindow("3D Bot View", $("#three_panel"));
@@ -271,7 +221,7 @@ define(["ui", "app", "common", "threeUtils", "./coin"], function(UI, App, common
                         app.worldTime.updateTime(g.millis() * .001);
                         app.coin.update(app.worldTime);
                         app.drawingWindow.render(function(context) {
-                            g.background(.55, 1, 1);
+                            g.background(.55, 0, 1);
                             if (app.coin)
                                 app.coin.draw(g);
 

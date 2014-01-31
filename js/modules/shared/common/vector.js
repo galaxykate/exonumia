@@ -229,6 +229,13 @@ define(["three", "inheritance", "box2D"], function(THREE, Inheritance, Box2D) {
             this.y *= m;
             this.z *= m;
         },
+
+        multEach : function(m, my, mz) {
+            this.x *= m;
+            this.y *= my;
+            if (mz)
+                this.z *= mz;
+        },
         div : function(m) {
             this.x /= m;
             this.y /= m;

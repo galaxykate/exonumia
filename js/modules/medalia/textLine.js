@@ -1,91 +1,184 @@
 /**
  * @author Kate Compton
  */
+var defaultMaterial, multimaterial;
 
-define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts"], function(common, Graph, threeUtils, threeFonts) {
+define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts", "./coinFeature"], function(common, Graph, threeUtils, threeFonts, Feature) {
 
-    var defaultMaterial = new THREE.MeshNormalMaterial();
-    var darkMaterial = new THREE.MeshBasicMaterial({
-        color : 0xffffcc
-    });
-    var wireframeMaterial = new THREE.MeshBasicMaterial({
-        color : 0x000000,
-        wireframe : true,
-        transparent : true
-    });
+    var TextArea = Feature.extend({
+        init : function(uiDiv) {
+            var sliders = {
+                height : {
+                    name : "height",
+                    defaultVal : 90,
+                    min : 20,
+                    max : 100,
+                    onChange : "remod"
+                },
 
-    var multiMaterial = [defaultMaterial, wireframeMaterial];
+                offset : {
+                    name : "offset",
+                    defaultVal : 80,
+                    min : 50,
+                    max : 128,
+                    onChange : "rebuild"
+                },
 
-    defaultMaterial.side = THREE.DoubleSide;
+                size : {
+                    name : "size",
+                    defaultVal : utilities.random(.2, .2),
+                    min : .2,
+                    max : .8,
+                    onChange : "rebuild"
+                },
 
-    var TextArea = Class.extend({
-        init : function() {
+            };
+            this.text = "hello world";
+            this.originalShape = new Graph.Shape("Original");
+            this.deformedShape = new Graph.Shape("Deformed");
+
+            this._super("TextLine", sliders, uiDiv);
+
+        },
+
+        update : function(time) {
+
+        },
+
+        //======================================================
+        buildUIDetails : function(uiDiv) {
+            var feature = this;
+
+            console.log("add new text line");
+
+            var idNumber = this.textLineCount;
+            // Create the div
+            var textLine = {
+                idNumber : idNumber,
+                div : $("<div/>", {
+                    html : "text:",
+                    id : "textLine" + idNumber,
+                    "class" : ""
+                }),
+                textArea : $("<textarea/>", {
+                    rows : 1,
+                    cols : 20,
+                    html : utilities.getRandom(mottos),
+                }),
+
+                fontChoice : $("<select/>", {
+                    html : app.fontSelectionOptions,
+                })
+            };
+
+            textLine.textArea.keyup(function() {
+                console.log(textLine.textArea.val());
+                feature.setText(textLine.textArea.val());
+            });
+
+            textLine.div.append(textLine.textArea);
+            textLine.div.append(textLine.fontChoice);
+
+            uiDiv.append(textLine.div);
+
+        },
+
+        //======================================================
+        //======================================================
+
+        setText : function(text) {
+            this.text = text;
+            this.rebuild();
+        },
+
+        buildShapeDetails : function() {
+            this.originalShape = new Graph.Shape();
+            this.deformedShape = new Graph.Shape();
+
+            this.createTextShapes(this.text);
+            this.deformText();
+            this.createTextMeshes(this.deformedShape.shapes);
+
+        },
+
+        createTextShapes : function(text) {
+            console.log("createTextShapes " + text);
+            this.letterShapes = threeFonts.createShapesFromText(text);
+            // center them
+
+            this.originalShape.addShapes(this.letterShapes);
+            var scale = this.getCurrentValue("size");
+            this.originalShape.scaleVertices(scale, -scale);
+            this.originalShape.setBoundingBox();
+            this.originalShape.translateVertices(new Vector(-this.originalShape.boundingBox.w / 2, 0));
+
+            this.deformedShape.clone(this.originalShape);
+            this.createTextFeatureShapes(this.deformedShape.shapes);
+        },
+
+        createTextFeatureShapes : function(shapes) {
+            console.log(shapes);
+            for (var i = 0; i < shapes.length; i++) {
+                var shape = shapes[i];
+                var letterFeatureShape = new Feature.FeatureShape(this, shape);
+                this.featureShapes.push(letterFeatureShape);
+            }
+        },
+
+        deformText : function() {
             var textArea = this;
-            this.offset = 40;
-            this.rotation = 40;
 
-            this.deformPoint = function(p) {
+            var deformPoint = function(p) {
                 // Save the original
+
                 if (!p.original)
                     p.original = new Vector(p);
-                var theta = p.original.x * .005 + textArea.rotation;
-                var r = p.original.y + textArea.offset;
+                var theta = -p.original.x * .009 + -Math.PI / 2;
+                var r = -p.original.y - textArea.getCurrentValue("offset");
 
                 p.setToPolar(r, theta);
 
+                //   p.x += 90;
+
             };
 
-            this.mesh = new THREE.Object3D();
-            this.createShapes();
-            this.deformShapes();
-
-        },
-
-        createShapes : function() {
-            var textArea = this;
-            this.shapes = new Graph.Shape.ShapeSet();
-            var textShapes = threeFonts.createShapesFromText("Adrian");
-            this.shapes.addShapes(textShapes);
-            this.shapes.setBoundingBox();
-
-            this.deformed = new Graph.Shape.ShapeSet();
-            this.deformed.clone(this.shapes);
-
-            console.log(this.deformed);
-
-            // Create mod geometries
-            // For each shape, create a modegeo
-            $.each(this.shapes.shapes, function(index, shape) {
-                shape.geo = new threeUtils.ModGeo.Swiss(shape);
-                var box = new THREE.Mesh(new THREE.CubeGeometry(1, 1, 15), defaultMaterial);
-                box.translateX(Math.random() * 100);
-                box.translateY(Math.random() * 100);
-                box.scale.x = shape.boundingBox.w;
-                box.scale.y = shape.boundingBox.h;
-                box.position.x = shape.boundingBox.x + shape.boundingBox.w / 2;
-                box.position.y = shape.boundingBox.y + shape.boundingBox.h / 2;
-                textArea.mesh.add(box);
-
-                //  var textMesh = new THREE.Mesh(shape.geo.createGeometry(), defaultMaterial);
-                var textMesh = THREE.SceneUtils.createMultiMaterialObject(shape.geo.createGeometry(), multiMaterial);
-
-                textArea.mesh.add(textMesh);
-            });
-
-        },
-
-        deformShapes : function() {
-            var f = this.deformPoint;
-
-            this.shapes.applyToNodes(function(node) {
-                f(node);
-
+            this.deformedShape.applyToNodes(function(node) {
+                deformPoint(node);
             }, function(handle) {
-                f(handle);
+                deformPoint(handle);
                 handle.setFromPosition();
             });
         },
 
+        createTextMeshes : function(shapeSet) {
+            console.log("Create text meshes");
+            this.modGeos = [];
+            for (var i = 0; i < shapeSet.length; i++) {
+                var shape = shapeSet[i];
+                var modGeo = new threeUtils.ModGeo.Swiss({
+                    outerPath : shape.outerPath,
+                    ringCount : 1,
+                    flipSides : false
+                });
+
+                var geo = modGeo.createGeometry();
+                var shapeMesh = THREE.SceneUtils.createMultiMaterialObject(geo, multiMaterial);
+
+                modGeo.modOuterRing(function(p, context) {
+                    var bump = 1 + 1.5 * Math.sin(context.pctRing * 3);
+                    var i = context.segment;
+                    var node = context.path.nodes[i];
+                    p.x = node.x;
+                    p.y = node.y;
+                    p.z = context.pctRing * 190;
+                });
+
+                this.modGeos.push(modGeo);
+
+                this.mesh.add(shapeMesh);
+            }
+
+        },
         draw : function(context) {
             var g = context.g;
             var startTheta = this.rotation;
@@ -112,6 +205,7 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts"]
 
             g.pushMatrix();
             g.translate(-30, 0);
+            context.drawNodes = true;
             this.deformed.draw(context);
             g.popMatrix();
         },

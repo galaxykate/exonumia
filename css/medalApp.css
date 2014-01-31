@@ -11,17 +11,19 @@
 	height: 600px;
 }
 
-#three_panel {
+.vert_panel {
 	float: left;
-	width: 300px;
-	height: 500px;
+	width: 350px;
+	height: 360px;
+}
+
+#three_panel {
+
 }
 
 #user_controls {
 	pointer-events: all;
-	position: absolute;
-	width: 280px;
-	height: 120px;
+	float: left;
 }
 
 .panel {
@@ -29,8 +31,6 @@
 	margin: 4px;
 	border: 2px solid white;
 	background: rgba(200, 210, 210, .8);
-	width: 200px;
-	height: 200px;
 	box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, .4);
 	border-radius: 15px;
 }
@@ -38,27 +38,34 @@
 	margin: 4px;
 	border: 2px solid white;
 	background: rgba(200, 210, 210, .8);
-	width: 200px;
-	height: 200px;
 	box-shadow: 2px 2px 15px 0px rgba(0, 0, 0, .4);
 	border-radius: 15px;
 }
 
 #drawing_panel {
 	-webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC); /* this fixes the overflow:hidden in Chrome/Opera */
-	float: left;
-	width: 390px;
-	height: 500px;
 }
 
 #drawing_canvas {
-	float: left;
-	width: 390px;
-	height: 500px;
+
 }
 
 .textLine {
+	float: left;
 	border: 2px solid white;
 	background: rgba(200, 210, 210, .8);
 }
 
+.medallion_sliders {
+	float: left;
+	background: rgba(100, 210, 210, .8);
+}
+
+.medallion_holder {
+	float: left;
+	background: rgba(100, 210, 210, .3);
+}
+
+.panel_holder {
+	float: left;
+}

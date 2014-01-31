@@ -8,22 +8,10 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
         init : function(app) {
             var coin = this;
 
-            this.material = new THREE.MeshLambertMaterial({
-                color : 0xffffff,
-                ambient : 0xaaaaaa,
-                shading : THREE.FlatShading
-            });
-
             this.border = new Graph.Path();
             this.mesh = new THREE.Object3D();
             this.mesh.name = "coin";
             this.sourceIndex = 0;
-
-            this.designTransform = new common.Transform();
-
-            this.changeBorder({
-                sides : 8
-            });
 
             //==========
             // Lights and shading
@@ -31,67 +19,38 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
             light.position.set(150, 350, 350);
             this.mesh.add(light);
 
-            this.embossingShapes = new Graph.Shape.ShapeSet();
+            this.shapes = new Graph.Shape("Coin");
+            this.textLines = [];
+            this.medallions = [];
 
-            this.textMesh = new THREE.Object3D();
+            var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 60, 10, 10, false), new THREE.MeshNormalMaterial());
+            cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+            this.mesh.add(cylinder);
 
-            this.mesh.add(this.textMesh);
+            // this.exportToOBJ();
+        },
 
-            this.textAreas = [new TextArea()];
-            // Add each text area to the mesh
-            $.each(this.textAreas, function(index, area) {
-                coin.textMesh.add(area.mesh);
+        addMedallion : function(medallion) {
+            this.medallions.push(medallion);
+            this.mesh.add(medallion.mesh);
+            console.log("Add medallion mesh: " + medallion.mesh);
+            this.shapes.addShape(medallion.shape);
+        },
 
-            });
-
-            //  if (app.getOption("useGraphic"))
-            //    this.loadPathsFromSVG();
-
-            this.exportToOBJ();
+        addTextLine : function(textLine) {
+            this.textLines.push(textLine)
+            this.mesh.add(textLine.mesh);
+            this.shapes.addShape(textLine.shape);
         },
 
         update : function(time) {
-
-        },
-
-        distortText : function(geo) {
-
-            // Update the geometry
-            geo.computeFaceNormals();
-            geo.verticesNeedUpdate = true;
-
-        },
-
-        changeBorder : function(settings) {
-            var defaultSettings = {
-                sides : 8,
-                radius : 90,
-                fluteDepth : .2,
-                upperWidth : 1,
-                lowerWidth : 1,
-                upperTilt : 0,
-                lowerTilt : 0,
-                peakTilt : .5,
+            for (var i = 0; i < this.textLines.length; i++) {
+                this.textLines[i].update(time);
             }
 
-            $.extend(defaultSettings, settings);
-
-            this.mesh.remove(this.borderMesh);
-            this.border.clear();
-            Graph.addFlutedCircle(this.border, defaultSettings);
-            /*
-             this.borderMesh = this.border.createThreeMesh({
-             rings : 3,
-             capRings : 5,
-             height : 40,
-             material : this.material,
-             });
-             */
-
-            var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(80, 80, 40, 10, 10, false), new THREE.MeshNormalMaterial());
-            cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
-
-            this.mesh.add(cylinder);
+            for (var i = 0; i < this.medallions.length; i++) {
+                this.medallions[i].update(time);
+            }
         },
 
         loadPathsFromSVG : function() {
@@ -111,7 +70,7 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
         },
 
         selectAt : function(p) {
-            this.designTransform.toLocal(p, p);
+            //  this.designTransform.toLocal(p, p);
 
         },
 
@@ -130,14 +89,10 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
             //this.border.draw(context);
             g.pushMatrix();
 
-            context.drawPoints = true;
-            context.drawControlPoints = true;
+            context.drawPoints = false;
+            context.drawControlPoints = false;
 
-            this.embossingShapes.draw(context);
-
-            $.each(this.textAreas, function(index, area) {
-                area.draw(context);
-            });
+            this.shapes.draw(context);
 
             g.popMatrix();
         },

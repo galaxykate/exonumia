@@ -8,7 +8,7 @@
 var prefix = "modules/shared/ui/";
 define(["common", "processing", prefix + "panel", prefix + "controls", prefix + "popup", prefix + "mode", prefix + "output", prefix + "window"], function(common, Processing, Panel, Controls, Popup, Mode, Output, DrawingWindow) {'use strict';
 
-    var addSlider = function(parent, key, defaultValue, minValue, maxValue, onChange) {
+    var addSlider = function(parent, key, defaultValue, minValue, maxValue, onChange, useLabel) {
 
         // Create an empty slider div
         var optionDiv = $("<div/>", {
@@ -39,12 +39,13 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             step : step,
             slide : function(event, ui) {
                 $("#" + key + "amt").text(ui.value);
-                console.log("Slide " + ui.value);
+                //   console.log("Slide " + ui.value);
                 if (onChange !== undefined) {
                     onChange(key, ui.value);
                 }
             }
         });
+        onChange(key, defaultValue);
 
         // Create a lable
         $('<label />', {
@@ -52,12 +53,13 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             text : key + ": "
         }).appendTo(optionDiv);
 
-        // Create a lable
-        $('<span />', {
-            id : key + "amt",
-            text : defaultValue
-        }).appendTo(optionDiv);
-
+        if (useLabel) {
+            // Create a lable
+            $('<span />', {
+                id : key + "amt",
+                text : defaultValue
+            }).appendTo(optionDiv);
+        }
         return slider;
     };
     //==============================================================
@@ -166,7 +168,7 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
 
             $.extend(this.panels, {
                 devOutput : new Panel({
-                    app: ui.app,
+                    app : ui.app,
                     title : "Dev Output",
                     div : $("#dev_output"),
                     dimensions : new Vector(w, h),
@@ -175,8 +177,8 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
                 }),
 
                 devOptions : new Panel({
-                        app: ui.app,
-                title : "Dev Options",
+                    app : ui.app,
+                    title : "Dev Options",
                     div : $("#dev_options"),
                     dimensions : new Vector(w, h),
                     side : "top",
@@ -184,8 +186,8 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
                 }),
 
                 devSliders : new Panel({
-                        app: ui.app,
-                title : "Dev Tuning Values",
+                    app : ui.app,
+                    title : "Dev Tuning Values",
                     div : $("#dev_sliders"),
                     dimensions : new Vector(w, h),
                     side : "top",
@@ -237,7 +239,7 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
 
             checkbox.click(function() {
                 ui.options[key].value = checkbox.prop('checked');
-                console.log(key + ": " + ui.options[key].value);
+                //      console.log(key + ": " + ui.options[key].value);
                 if (onChange !== undefined) {
                     onChange(key, ui.options[key].value);
                 }
@@ -248,16 +250,17 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
         addTuningValue : function(key, defaultValue, minValue, maxValue, onChange) {
             var ui = this;
             var parent = this.panels.devSliders.div;
-            var uiOnChange = function(key, value) {
-                ui.tuningValues[key].value = value;
-                onChange(key, value);
-            }
-            var slider = addSlider(parent, key, defaultValue, minValue, maxValue, uiOnChange);
 
             ui.tuningValues[key] = {
                 value : defaultValue,
                 slider : slider,
             };
+
+            var uiOnChange = function(key, value) {
+                ui.tuningValues[key].value = value;
+                onChange(key, value);
+            }
+            var slider = addSlider(parent, key, defaultValue, minValue, maxValue, uiOnChange);
 
         },
 
@@ -266,9 +269,7 @@ define(["common", "processing", prefix + "panel", prefix + "controls", prefix + 
             return manager;
         },
 
-        createSlider : function() {
-
-        }
+        addSlider : addSlider,
     });
 
     UI.Controls = Controls;

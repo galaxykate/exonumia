@@ -158,7 +158,8 @@ define(["common", "mousewheel"], function(common, MOUSEWHEEL) {'use strict';
                     setToLocalPos(controls.touch.dragCurrent, controls.activeTouchable.selector, evt);
                     controls.activeTouchable.drag(controls.touch.dragStart, controls.touch.dragCurrent);
                 }
-                return false;
+                   evt.preventDefault();
+
             });
 
         },

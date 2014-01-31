@@ -17,15 +17,15 @@ define(["common", "three"], function(common, THREE) {'use strict';
             this.orbit = {
                 position : new Vector(),
                 distance : 200,
-                phi : .4,
+                phi : 3.9,
                 theta : .95,
-                phiMin : -.7,
-                phiMax : 1.4,
+                phiMin : 3.2,
+                phiMax : 4.7,
             }
 
             this.forward = new THREE.Vector3(0, 1, 0);
             this.right = new THREE.Vector3(1, 0, 0);
-            this.up = new THREE.Vector3(0, 0, 1);
+            this.up = new THREE.Vector3(0, 0, -1);
 
             this.screenCenter = new Vector(0, 0);
 
@@ -131,7 +131,7 @@ define(["common", "three"], function(common, THREE) {'use strict';
             this.orbit.position.addSpherical(this.orbit.distance, this.orbit.theta, this.orbit.phi);
 
             camera.position.copy(this.orbit.position);
-            camera.up = new THREE.Vector3(0, 0, 1);
+            camera.up = new THREE.Vector3(0, 0, -1);
             camera.lookAt(this);
 
             camera.updateMatrix();

@@ -3,6 +3,12 @@
  */
 
 define(["common", "three"], function(common, THREE) {'use strict';
+    var flipFace = function(face) {
+        var temp = face.a;
+        face.a = face.b;
+        face.b = temp;
+    };
+
     var vertexArrayToString = function(array) {
         var s = "";
         for (var i = 0; i < array.length; i++) {
@@ -13,10 +19,10 @@ define(["common", "three"], function(common, THREE) {'use strict';
     };
 
     var faceToString = function(face, vertices) {
-        var s = "[" + face[0] + ", " + face[1] + ", " + face[2] + "]";
+        var s = "[" + face.a + ", " + face.b + ", " + face.c + "]";
 
         if (vertices) {
-            s += vertices[faces[0]] + " " + vertices[faces[1]] + " " + vertices[faces[2]];
+            s += vertices[faces.a] + " " + vertices[faces.b] + " " + vertices[faces.c];
         }
         return s;
     };
@@ -119,7 +125,6 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
     var GeoRing = Class.extend({
         init : function(geometry, ringCount, segmentCount, topVertices, bottomVertices) {
-            console.log("Make ring with " + ringCount + " rings and " + segmentCount + " segments");
             this.geom = geometry;
 
             this.ringCount = ringCount;
@@ -151,26 +156,39 @@ define(["common", "three"], function(common, THREE) {'use strict';
                 }
             }
 
+            this.faces = [];
             for (var i = 0; i < ringCount; i++) {
 
-                connectRings(this.geom.faces, this.rings[i], this.rings[i + 1], false);
+                connectRings(this.faces, this.rings[i], this.rings[i + 1], false);
 
+            }
+
+            for (var i = 0; i < this.faces.length; i++) {
+                geometry.faces.push(this.faces[i]);
             }
         },
 
-        getTopRing : function() {
-            return this.rings[this.rings.length - 1];
+        flipFaces : function() {
+            for (var i = 0; i < this.faces.length; i++) {
+                flipFace(this.faces[i]);
+            }
         },
 
-        modVertices : function(f) {
+        getRing : function(index) {
+            return this.rings[index];
+        },
+
+        modVertices : function(f, context) {
+            if (!context)
+                context = {};
 
             // Do something with each vertex
-            var context = {
+            _.extend(context, {
                 ring : 0,
                 segment : 0,
                 pctSegment : 0,
                 pctRing : 0,
-            };
+            });
 
             for (var i = 0; i < this.rings.length; i++) {
                 var ring = this.rings[i];
@@ -178,6 +196,7 @@ define(["common", "three"], function(common, THREE) {'use strict';
                 context.ring = i;
                 context.pctRing = i / this.rings.length;
                 for (var j = 0; j < seg; j++) {
+                    context.pctSegment = j / seg;
                     context.segment = j;
                     f(ring[j], context);
                 }
@@ -197,29 +216,65 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
         // Make a swiss geometry out of some shape
         // Single outer hull, plus points
-        init : function(shape) {
-            this.geom = new THREE.Geometry();
-            this.exterior = new GeoRing(this.geom, 3, shape.paths[0].nodes.length - 1);
+        init : function(overrides) {
+            var settings = {
+                ringCount : 3,
+            }
 
-            this.exterior.modVertices(function(p, context) {
+            _.extend(settings, overrides);
+
+            this.geom = new THREE.Geometry();
+            this.outerPath = settings.outerPath;
+            this.exterior = new GeoRing(this.geom, settings.ringCount, this.outerPath.nodes.length);
+
+            this.setToPath();
+
+            this.makeLayerFaces(0, true);
+            this.makeLayerFaces(settings.ringCount, false);
+
+            if (settings.flipSides)
+                this.exterior.flipFaces();
+        },
+
+        setToPath : function() {
+            this.modOuterRing(function(p, context) {
                 var i = context.segment;
-                var node = shape.paths[0].nodes[i];
+                var node = context.path.nodes[i];
                 p.x = node.x;
                 p.y = node.y;
             });
 
-      
-            var topRing = this.exterior.getTopRing();
-            var faces = THREE.Shape.Utils.triangulateShape(topRing, []);
+            this.update();
+
+        },
+
+        makeLayerFaces : function(ringIndex, flip) {
+            var ring = this.exterior.getRing(ringIndex);
+            var faces = THREE.Shape.Utils.triangulateShape(ring, []);
+
             for (var i = 0; i < faces.length; i++) {
 
                 for (var j = 0; j < 3; j++) {
                     var index = faces[i][j];
-                    faces[i][j] = topRing[index].meshIndex;
+
+                    faces[i][j] = ring[index].meshIndex;
                 }
-                this.geom.faces.push(new THREE.Face3(faces[i][0], faces[i][1], faces[i][2]));
+
+                var f = new THREE.Face3(faces[i][0], faces[i][1], faces[i][2]);
+                if (flip) {
+                    flipFace(f);
+                }
+                this.geom.faces.push(f);
             }
 
+        },
+
+        modOuterRing : function(f) {
+            var outerPath = this.outerPath;
+
+            this.exterior.modVertices(f, {
+                path : outerPath
+            });
         },
 
         createGeometry : function() {

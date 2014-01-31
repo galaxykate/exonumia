@@ -54,7 +54,7 @@ define(["common", "./edgeHandle", "./node"], function(common, Handle, EdgeNode) 
 
         setNode : function(node, side) {
             if (!node || !node.isValid()) {
-                throw ("Attempting to make edge with invalid nodes[0]:" + nodes[0]);
+                throw ("Attempting to make edge with invalid nodes[0]:" + this.nodes[0]);
             }
             EdgeNode.upgradeToNode(node);
             this.nodes[side] = node;
@@ -114,7 +114,7 @@ define(["common", "./edgeHandle", "./node"], function(common, Handle, EdgeNode) 
         },
 
         updateFromNodes : function() {
-      
+
             this.edge.setToDifference(this.nodes[1], this.nodes[0]);
             this.normal.setTo(this.edge.y, -this.edge.x);
             this.normal.normalize();
@@ -152,6 +152,13 @@ define(["common", "./edgeHandle", "./node"], function(common, Handle, EdgeNode) 
                 this.handles[0] = new Handle(c0, this.nodes[0], this, 0);
                 this.handles[1] = new Handle(c1, this.nodes[1], this, 1);
             }
+        },
+
+        makeRelativeHandles : function(r0, theta0, r1, theta1) {
+
+            var c0 = Vector.polarOffset(this.nodes[0], r0, theta0);
+            var c1 = Vector.polarOffset(this.nodes[1], r1, theta1);
+            this.makeHandles(c0, c1);
         },
 
         //==============================================================================
@@ -231,7 +238,7 @@ define(["common", "./edgeHandle", "./node"], function(common, Handle, EdgeNode) 
             var t0 = 1 - t;
             var t1 = t;
 
-            p.rotation = this.getAngleAt(t);
+       //     p.rotation = this.getAngleAt(t);
 
             if (this.handles === undefined) {
                 p.setTo(this.nodes[0].lerp(this.nodes[1], t));
