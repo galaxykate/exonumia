@@ -10,7 +10,7 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts",
             var sliders = {
                 height : {
                     name : "height",
-                    defaultVal : 90,
+                    defaultVal : 20,
                     min : 20,
                     max : 100,
                     onChange : "remod"
@@ -27,13 +27,13 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts",
                 size : {
                     name : "size",
                     defaultVal : utilities.random(.2, .2),
-                    min : .2,
-                    max : .8,
+                    min : .1,
+                    max : .4,
                     onChange : "rebuild"
                 },
 
             };
-            this.text = "hello world";
+            this.text = "HELLO WORLD";
             this.originalShape = new Graph.Shape("Original");
             this.deformedShape = new Graph.Shape("Deformed");
 
@@ -97,7 +97,7 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts",
 
             this.createTextShapes(this.text);
             this.deformText();
-            this.createTextMeshes(this.deformedShape.shapes);
+          //  this.createTextMeshes(this.deformedShape.shapes);
 
         },
 
@@ -119,6 +119,8 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts",
         createTextFeatureShapes : function(shapes) {
             console.log(shapes);
             for (var i = 0; i < shapes.length; i++) {
+                console.log("================");
+                console.log(this.id + ": Create text feature " + i);
                 var shape = shapes[i];
                 var letterFeatureShape = new Feature.FeatureShape(this, shape);
                 this.featureShapes.push(letterFeatureShape);
@@ -130,11 +132,14 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts",
 
             var deformPoint = function(p) {
                 // Save the original
+                var offset = textArea.getCurrentValue("offset");
 
                 if (!p.original)
                     p.original = new Vector(p);
-                var theta = -p.original.x * .009 + -Math.PI / 2;
-                var r = -p.original.y - textArea.getCurrentValue("offset");
+
+                var spread = 1.2 / offset;
+                var theta = -p.original.x * spread + -Math.PI / 2;
+                var r = -p.original.y - offset;
 
                 p.setToPolar(r, theta);
 
@@ -150,35 +155,7 @@ define(["common", "graph", "threeUtils", "modules/shared/threeUtils/threeFonts",
             });
         },
 
-        createTextMeshes : function(shapeSet) {
-            console.log("Create text meshes");
-            this.modGeos = [];
-            for (var i = 0; i < shapeSet.length; i++) {
-                var shape = shapeSet[i];
-                var modGeo = new threeUtils.ModGeo.Swiss({
-                    outerPath : shape.outerPath,
-                    ringCount : 1,
-                    flipSides : false
-                });
-
-                var geo = modGeo.createGeometry();
-                var shapeMesh = THREE.SceneUtils.createMultiMaterialObject(geo, multiMaterial);
-
-                modGeo.modOuterRing(function(p, context) {
-                    var bump = 1 + 1.5 * Math.sin(context.pctRing * 3);
-                    var i = context.segment;
-                    var node = context.path.nodes[i];
-                    p.x = node.x;
-                    p.y = node.y;
-                    p.z = context.pctRing * 190;
-                });
-
-                this.modGeos.push(modGeo);
-
-                this.mesh.add(shapeMesh);
-            }
-
-        },
+     
         draw : function(context) {
             var g = context.g;
             var startTheta = this.rotation;

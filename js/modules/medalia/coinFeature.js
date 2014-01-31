@@ -21,12 +21,17 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
     // Just one shape, just one swiss geo
     var FeatureShape = Class.extend({
         init : function(feature, shape) {
+            console.log("New feature shape");
             this.shape = shape;
+            this.ringCount = 1;
             this.shape.idColor = feature.idColor;
+
             this.modgeo = new threeUtils.ModGeo.Swiss({
                 outerPath : this.shape.outerPath.createLinearPath(3),
-                // FIX: Create some inner paths, too
+                innerPaths : this.shape.innerPaths,
+                ringCount : this.ringCount,
             });
+
         },
 
         getMesh : function() {
@@ -79,24 +84,19 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
             });
 
             for (var prop in sliders) {
-                console.log("Prop " + prop);
                 if (sliders.hasOwnProperty(prop)) {
                     var setting = sliders[prop];
                     this.addSlider(sliderHolder, prop, setting);
                 }
             }
 
-            console.log("add slider holder to ", uiDiv);
             uiDiv.append(sliderHolder);
         },
 
         addSlider : function(sliderHolder, prop, setting) {
 
-            console.log("Slider " + prop);
-
             var feature = this;
             app.ui.addSlider(sliderHolder, setting.name, setting.defaultVal, setting.min, setting.max, function(key, val) {
-                console.log("Set " + prop + " to " + feature.currentValues[prop]);
                 feature.currentValues[prop] = val;
 
                 // Apply the onchange fxn
@@ -149,7 +149,6 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
 
             }
 
-            console.log(this.mesh);
             for (var i = 0; i < this.featureShapes.length; i++) {
                 this.mesh.add(this.featureShapes[i].getMesh());
             }

@@ -152,7 +152,7 @@ define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLin
             touchRender.onScroll(function(touchwindow, delta) {
                 var cam = app.threeRender.camera;
                 cam.orbit.distance *= 1 + .03 * delta;
-                cam.orbit.distance = utilities.constrain(cam.orbit.distance, 300, 1200);
+                cam.orbit.distance = utilities.constrain(cam.orbit.distance, 200, 1200);
                 cam.updateOrbit();
 
             });
@@ -201,7 +201,7 @@ define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLin
             });
 
             var cam = app.threeRender.camera;
-            cam.orbit.distance = 700;
+            cam.orbit.distance = 400;
             cam.updateOrbit();
 
             app.threeWindow = new UI.DrawingWindow("3D Bot View", $("#three_panel"));

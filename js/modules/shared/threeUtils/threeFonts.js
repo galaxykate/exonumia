@@ -90,12 +90,13 @@ define(["common", "three", 'helvetiker', "graph"], function(common, THREE, helv,
             var paths = createPathsFromThreePath(textPaths[i]);
             // A list for each letter containing every path that makes up that letter (two each for 'A' and 'i', etc)
             //  But these paths might be exterior or interior
-
+            console.log(text.charAt(i) + ": " + paths.length + " paths");
             var count = 0;
             for (var j = 0; j < paths.length; j++) {
 
                 var path = paths[j];
                 if (path) {
+                    path.name = text.charAt(i) + j;
                     var area = path.calculateArea();
 
                     if (area > 0) {
@@ -104,10 +105,10 @@ define(["common", "three", 'helvetiker', "graph"], function(common, THREE, helv,
                         currentShape = new Graph.Shape(textNoSpaces.charAt(i) + count);
                         count++
                         shapes.push(currentShape);
-                        currentShape.setOuterPath(paths[j]);
+                        currentShape.setOuterPath(path);
                     } else {
                         // interior path
-                        currentShape.addInnerPath(paths[j]);
+                        currentShape.addInnerPath(path);
                     }
                 }
 

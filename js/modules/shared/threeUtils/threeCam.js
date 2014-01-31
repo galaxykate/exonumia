@@ -19,7 +19,7 @@ define(["common", "three"], function(common, THREE) {'use strict';
                 distance : 200,
                 phi : 3.9,
                 theta : .95,
-                phiMin : 3.2,
+                phiMin : 2.8,
                 phiMax : 4.7,
             }
 

@@ -217,20 +217,30 @@ define(["common", "three"], function(common, THREE) {'use strict';
         // Make a swiss geometry out of some shape
         // Single outer hull, plus points
         init : function(overrides) {
+
+            console.log("MAKE MOD GEOMETRY");
+            var modGeom = this;
             var settings = {
                 ringCount : 3,
+                innerPaths : [],
             }
 
             _.extend(settings, overrides);
 
             this.geom = new THREE.Geometry();
             this.outerPath = settings.outerPath;
+            this.innerPaths = settings.innerPaths;
+
+            // Make the rings
             this.exterior = new GeoRing(this.geom, settings.ringCount, this.outerPath.nodes.length);
+            this.interiors = this.innerPaths.map(function(path) {
+                return new GeoRing(modGeom.geom, settings.ringCount, path.nodes.length);
+            });
 
             this.setToPath();
 
             this.makeLayerFaces(0, true);
-            this.makeLayerFaces(settings.ringCount, false);
+             this.makeLayerFaces(settings.ringCount, false);
 
             if (settings.flipSides)
                 this.exterior.flipFaces();
@@ -250,14 +260,23 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
         makeLayerFaces : function(ringIndex, flip) {
             var ring = this.exterior.getRing(ringIndex);
-            var faces = THREE.Shape.Utils.triangulateShape(ring, []);
+
+            var interiorRings = this.interiors.map(function(current) {
+                var ring = current.getRing(ringIndex);
+                console.log(ring);
+                return ring;
+            });
+
+            console.log("interior rings: " + interiorRings.length);
+            // var faces = THREE.Shape.Utils.triangulateShape(ring, interiorRings);
+            var faces = triangulateShape(ring, interiorRings);
 
             for (var i = 0; i < faces.length; i++) {
 
                 for (var j = 0; j < 3; j++) {
-                    var index = faces[i][j];
+                    var v = faces[i][j];
 
-                    faces[i][j] = ring[index].meshIndex;
+                    faces[i][j] = v.meshIndex;
                 }
 
                 var f = new THREE.Face3(faces[i][0], faces[i][1], faces[i][2]);
@@ -271,18 +290,91 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
         modOuterRing : function(f) {
             var outerPath = this.outerPath;
+            var innerPaths = this.innerPaths;
 
             this.exterior.modVertices(f, {
                 path : outerPath
             });
+
+            $.each(this.interiors, function(index, georing) {
+                georing.modVertices(f, {
+                    path : innerPaths[index],
+                });
+            });
+
         },
 
+       
         createGeometry : function() {
             // return new THREE.CubeGeometry(10, 10, 150);
             this.geom.computeFaceNormals();
             return this.geom;
         },
     });
+
+    var triangulateShape = function(contour, holes) {
+
+        var shapeWithoutHoles = THREE.Shape.Utils.removeHoles(contour, holes);
+        var shape = shapeWithoutHoles.shape;
+        var allpoints = shapeWithoutHoles.allpoints;
+        var isolatedPts = shapeWithoutHoles.isolatedPts;
+        var triangles = THREE.FontUtils.Triangulate(shape, false);
+        // True returns indices for points of spooled shape
+
+        // To maintain reference to old shape, one must match coordinates, or offset the indices from original arrays. It's probably easier to do the first.
+
+        //console.log( "triangles",triangles, triangles.length );
+        //console.log( "allpoints",allpoints, allpoints.length );
+        var i, il, f, face, key, index, allPointsMap = {}, isolatedPointsMap = {};
+        // prepare all points map
+
+        for ( i = 0, il = allpoints.length; i < il; i++) {
+            key = allpoints[i].x + ":" + allpoints[i].y;
+            if (allPointsMap[key] !== undefined) {
+                console.log("Duplicate point", key);
+            }
+
+            allPointsMap[key] = i;
+        }
+
+        // check all face vertices against all points map
+
+        for ( i = 0, il = triangles.length; i < il; i++) {
+            face = triangles[i];
+            for ( f = 0; f < 3; f++) {
+                key = face[f].x + ":" + face[f].y;
+                index = allPointsMap[key];
+                if (index !== undefined) {
+                    face[f] = allpoints[index];
+                }
+            }
+
+            console.log(vertexArrayToString(face));
+        }
+
+        // check isolated points vertices against all points map
+
+        for ( i = 0, il = isolatedPts.length; i < il; i++) {
+            face = isolatedPts[i];
+            for ( f = 0; f < 3; f++) {
+                key = face[f].x + ":" + face[f].y;
+                index = allPointsMap[key];
+                if (index !== undefined) {
+                    face[f] = allpoints[index];
+                }
+            }
+
+            // reverse the order
+            var temp = face[1];
+            face[1] = face[0];
+            face[0] = temp;
+            //   console.log(vertexArrayToString(face));
+        }
+        var totalFaces = triangles.concat(isolatedPts);
+        return totalFaces;
+
+    };
+    // end triangulate shapes
 
     ModGeo.GeoRing = GeoRing;
     ModGeo.Swiss = Swiss;

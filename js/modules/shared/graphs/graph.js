@@ -46,6 +46,7 @@ define(["common", "./edge", "threeUtils"], function(common, Edge, threeUtils) {'
         //  but all the edges should connect to the nodes of the new one
         clone : function(original) {
             var graph = this;
+            this.name = original.name + "(clone)";
             // Clone all hte nodes
             $.each(original.nodes, function(index, node) {
                 var n = new Vector(node);
@@ -62,7 +63,7 @@ define(["common", "./edge", "threeUtils"], function(common, Edge, threeUtils) {'
                 e.clone(edge);
                 graph.addEdge(e);
             });
-         },
+        },
 
         //======================================================
         //======================================================
