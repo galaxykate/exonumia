@@ -132,7 +132,7 @@ define(["common", "three", "./threeCam"], function(common, THREE, ThreeCam) {'us
             // set its position
             pointLight.position.x = 10;
             pointLight.position.y = 50;
-            pointLight.position.z = 130;
+            pointLight.position.z = -230;
 
             // add to the scene
             this.scene.add(pointLight);

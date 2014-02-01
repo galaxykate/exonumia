@@ -18,7 +18,7 @@ var fontChoices = {
     }
 };
 
-define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLine"], function(UI, App, common, threeUtils, Coin, Medallion, TextLine) {
+define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLine", "./design"], function(UI, App, common, threeUtils, Coin, Medallion, TextLine, Design) {
     var w = 500;
     var h = 500;
 
@@ -51,13 +51,17 @@ define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLin
             console.log(app.fontSelectionOptions);
 
             //this.addNewMedallion();
-              this.addNewTextLine();
+            this.addNewDesign();
 
             $("#new_text").click(function() {
                 app.addNewTextLine();
             });
             $("#new_medallion").click(function() {
                 app.addNewMedallion();
+            });
+
+            $("#new_design").click(function() {
+                app.addNewDesign();
             });
 
             $("#export").click(function() {
@@ -78,6 +82,13 @@ define(["ui", "app", "common", "threeUtils", "./coin", "./medallion", "./textLin
             var textHolder = $("#text_panel");
             var text = new TextLine(textHolder);
             app.coin.addTextLine(text);
+
+        },
+
+        addNewDesign : function() {
+            var designHolder = $("#design_panel");
+            var design = new Design(designHolder);
+            app.coin.addDesign(design);
 
         },
 

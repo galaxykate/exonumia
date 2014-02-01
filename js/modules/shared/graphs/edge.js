@@ -119,7 +119,7 @@ define(["common", "./edgeHandle", "./node"], function(common, Handle, EdgeNode) 
             this.normal.setTo(this.edge.y, -this.edge.x);
             this.normal.normalize();
             if (!this.normal.isValid())
-                console.log(this.toString());
+                console.log("invalid edge: " + this.toString());
 
         },
 
@@ -238,7 +238,7 @@ define(["common", "./edgeHandle", "./node"], function(common, Handle, EdgeNode) 
             var t0 = 1 - t;
             var t1 = t;
 
-       //     p.rotation = this.getAngleAt(t);
+            //     p.rotation = this.getAngleAt(t);
 
             if (this.handles === undefined) {
                 p.setTo(this.nodes[0].lerp(this.nodes[1], t));

@@ -181,7 +181,7 @@ define(["common", "./path"], function(common, Path) {'use strict';
             }
             this.idColor.fill(context.g, -.3, 1);
 
-            g.text(this.name, 0, this.idNumber * 30);
+            // g.text(this.name, 0, this.idNumber * 30);
             g.popMatrix();
         },
         //========================================================

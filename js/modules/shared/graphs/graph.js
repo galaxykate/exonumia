@@ -103,6 +103,7 @@ define(["common", "./edge", "threeUtils"], function(common, Edge, threeUtils) {'
 
         addEdge : function(edge) {
             this.edges.push(edge);
+            return edge;
         },
 
         //==================================================================

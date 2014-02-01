@@ -1,7 +1,7 @@
 /**
  * @author Kate Compton
  */
-define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common, Edge, threeUtils, Path, Graph) {'use strict';
+define(["common", "./edge", "threeUtils", "./path", "./graph", "./shape"], function(common, Edge, threeUtils, Path, Graph, Shape) {'use strict';
     var commandLengths = {
         C : 3,
         S : 2,
@@ -35,8 +35,7 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
 
     };
 
-    var addSVGPath = function(graph, svg) {
-
+    var svgToPaths = function(svg) {
         // Parse the svg
         var tokens = svg.split(" ");
         var index = 0;
@@ -44,8 +43,10 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
         // Regex from "http://stackoverflow.com/questions/4681800/regex-to-match-svg-path-data-in-javascript"
         var pathSegmentPattern = /[a-z][^a-z]*/ig;
         var pathSegments = svg.match(pathSegmentPattern);
+
         var last = new Vector();
 
+        var paths = [];
         var currentPath;
 
         var point;
@@ -63,6 +64,7 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
                 if (data.charAt(0) === ",")
                     data = data.slice(1);
                 data = data.trim();
+                //   console.log(command + " " + data);
 
                 var vectors = parseIntoVectors(data);
 
@@ -82,54 +84,55 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
                             vectors[j + index].add(last);
                         }
                     }
+
+                    point = vectors[index];
                     switch(commandType) {
 
                         case "M":
                             if (currentPath !== undefined)
-                                graph.addPath(currentPath);
+                                paths.push(currentPath);
 
-                            currentPath = new Path("SVGPath" + graph.paths.length);
-                            point = new Vector(vectors[index]);
-                            var edge = currentPath.addEdgeTo(point);
+                            currentPath = new Path("SVGPath" + paths.length);
+                            currentPath.moveTo(point);
                             break;
 
                         case "L":
-                            point = new Vector(vectors[index]);
-
-                            var edge = currentPath.addEdgeTo(point);
+                            currentPath.lineTo(point);
                             break;
 
                         case "V":
                             point = new Vector(last.x, vectors[index].y);
+                            currentPath.lineTo(point);
 
-                            var edge = currentPath.addEdgeTo(point);
                             break;
 
                         case "H":
                             point = new Vector(vectors[index].x, last.y);
 
-                            var edge = currentPath.addEdgeTo(point);
+                            currentPath.lineTo(point);
+
                             break;
 
                         case "C":
 
                             point = new Vector(vectors[index + 2]);
-                            var edge = currentPath.addEdgeTo(point);
-                            edge.makeHandles();
-                            edge.handles[0].setFromPosition(vectors[index]);
-                            edge.handles[1].setFromPosition(vectors[index + 1]);
+
+                            currentPath.curveTo(vectors[index], vectors[index + 1], point);
 
                             break;
 
                         case  "S":
-
+                            // FIX: does this work?
                             point = new Vector(vectors[index + 1]);
-                            var edge = currentPath.addEdgeTo(point);
+                            currentPath.smoothCurveTo(vectors[index], point);
 
                             break;
                         case "Z":
 
                             break;
+
+                        default:
+                            throw ("Unknown command: " + commandType);
                     };
 
                     if (point !== undefined) {
@@ -140,28 +143,24 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
                 }
 
                 if (commandType === 'Z') {
-                    console.log(currentPath);
-                    // Close the graph: make the end point the same as the start point
-                    var lastEdge = currentPath.edges[currentPath.edges.length - 1];
-                    lastEdge.setEnd(currentPath.nodes[0]);
-
-                    // Remove the last point in the array
-                    currentPath.nodes.pop();
+                    // Add last edge?
                 }
 
             });
-
         }
 
         if (currentPath !== undefined)
-            graph.addPath(currentPath);
+            paths.push(currentPath);
+
+        console.log(paths);
+        return paths;
 
     };
 
     // Parse an svg file
     // Load a number of SVG "paths" but we'll call "regions", each of which might have MOVE
     //   commands and thus be a series of closed or non-closed paths
-    var parseSVG = function(graph, filename, callback) {
+    var parseSVGIntoShapes = function(filename, callback) {
 
         console.log("Load from SVG: " + filename);
 
@@ -170,26 +169,72 @@ define(["common", "./edge", "threeUtils", "./path", "./graph"], function(common,
             url : "svg/" + filename + ".svg",
             dataType : "text",
             success : function(data) {
+                var shapes = [];
 
                 var xml = $.parseXML(data);
-
                 // Make a path for each path in the xml and use the xml to fill it out
-                $("path", xml).each(function() {
+                $("path", xml).each(function(index) {
                     var pathData = this.getAttribute("d");
-                    if (pathData.length > 0) {
-                        addSVGPath(graph, pathData);
+
+                    var paths = svgToPaths(pathData);
+                    var shape = new Shape("SVG " + index);
+                    var outerArea = 0;
+                    var outerSign = 1;
+                    for (var i = 0; i < paths.length; i++) {
+                        var area, sign;
+                        var isInner = false;
+                        if (i === 0) {
+                            area = paths[i].calculateArea();
+                            sign = area ? area < 0 ? -1 : 1 : 0;
+                            isInner = false;
+                        } else {
+                            // is it the same winding as the outer?
+                            area = paths[i].calculateArea();
+                            sign = area ? area < 0 ? -1 : 1 : 0;
+                            if (sign === outerSign) {
+                                // start a new shape
+                                shapes.push(shape);
+                                shape = new Shape("SVG " + index + "." + i);
+                                isInner = false;
+                            } else {
+                                isInner = true;
+                            }
+
+                        }
+
+                        console.log(i + ": " + sign + " " + area + ": " + isInner);
+
+                        if (isInner) {
+                            shape.addInnerPath(paths[i]);
+                        } else {
+                            shape.setOuterPath(paths[i]);
+                            outerArea = paths[i].calculateArea();
+                            outerSign = outerArea ? outerArea < 0 ? -1 : 1 : 0;
+                        }
                     }
+
+                    shapes.push(shape);
+                    //   console.log("shape: " + shape);
                 });
 
+                console.log("Generated " + shapes.length + " shapes");
+                for (var i = 0; i < shapes.length; i++) {
+                    console.log("Shape " + i);
+                    console.log("  outer: " + shapes[i].outerPath.calculateArea());
+                    for (var j = 0; j < shapes[i].innerPaths.length; j++) {
+                        console.log("  " + j + ": " + shapes[i].innerPaths[j].calculateArea());
+                    }
+                }
+
                 if (callback)
-                    callback(graph);
+                    callback(shapes);
             }
         });
 
     };
 
     return {
-        parseSVG : parseSVG,
+        parseSVGIntoShapes : parseSVGIntoShapes,
 
     }
 

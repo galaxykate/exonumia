@@ -1,8 +1,7 @@
 /**
  * @author Kate Compton
  */
-define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, threeUtils, TextArea) {
-    var svgs = ["tricky", "cw", "ccw", "flower", "Tiki_Statue", "bird", "testshape2", "labyrinth"];
+define(["common", "graph", "threeUtils"], function(common, Graph, threeUtils) {
 
     var Coin = Class.extend({
         init : function(app) {
@@ -15,13 +14,18 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
 
             //==========
             // Lights and shading
-            var light = new THREE.PointLight(0xffffff, 1);
-            light.position.set(150, 350, 350);
+            var light = new THREE.PointLight(0xfff44f, .6);
+            light.position.set(150, -350, -350);
             this.mesh.add(light);
+
+            var light2 = new THREE.PointLight(0xf00fff, .8);
+            light2.position.set(850, 350, -350);
+            this.mesh.add(light2);
 
             this.shapes = new Graph.Shape("Coin");
             this.textLines = [];
             this.medallions = [];
+            this.designs = [];
 
             var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(20, 20, 60, 10, 10, false), new THREE.MeshNormalMaterial());
             cylinder.rotateOnAxis(new THREE.Vector3(1, 0, 0), Math.PI / 2);
@@ -43,6 +47,12 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
             this.shapes.addShape(textLine.shape);
         },
 
+        addDesign : function(design) {
+            this.designs.push(design)
+            this.mesh.add(design.mesh);
+            this.shapes.addShape(design.shape);
+        },
+
         update : function(time) {
             for (var i = 0; i < this.textLines.length; i++) {
                 this.textLines[i].update(time);
@@ -51,22 +61,6 @@ define(["common", "graph", "threeUtils", "./textLine"], function(common, Graph, 
             for (var i = 0; i < this.medallions.length; i++) {
                 this.medallions[i].update(time);
             }
-        },
-
-        loadPathsFromSVG : function() {
-            var coin = this;
-
-            coin.design = new Graph("Coin Design");
-            // Load an svg into a graph
-            Graph.parseSVG(this.design, svgs[this.sourceIndex], function() {
-                //   coin.design.loftPaths();
-                coin.design.centerBoundingBox();
-
-            });
-
-            // Don't put hings here, it won't be after the loading, due to async
-            this.sourceIndex = (this.sourceIndex + 1) % svgs.length;
-
         },
 
         selectAt : function(p) {

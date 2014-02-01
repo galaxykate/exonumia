@@ -240,9 +240,9 @@ define(["common", "three"], function(common, THREE) {'use strict';
             this.setToPath();
 
             this.makeLayerFaces(0, true);
-             this.makeLayerFaces(settings.ringCount, false);
+            this.makeLayerFaces(settings.ringCount, false);
 
-            if (settings.flipSides)
+            if (settings.flipSides || this.outerPath.calculateArea() > 0)
                 this.exterior.flipFaces();
         },
 
@@ -263,11 +263,9 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
             var interiorRings = this.interiors.map(function(current) {
                 var ring = current.getRing(ringIndex);
-                console.log(ring);
                 return ring;
             });
 
-            console.log("interior rings: " + interiorRings.length);
             // var faces = THREE.Shape.Utils.triangulateShape(ring, interiorRings);
             var faces = triangulateShape(ring, interiorRings);
 
@@ -278,7 +276,6 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
                     faces[i][j] = v.meshIndex;
                 }
-
                 var f = new THREE.Face3(faces[i][0], faces[i][1], faces[i][2]);
                 if (flip) {
                     flipFace(f);
@@ -304,7 +301,6 @@ define(["common", "three"], function(common, THREE) {'use strict';
 
         },
 
-       
         createGeometry : function() {
             // return new THREE.CubeGeometry(10, 10, 150);
             this.geom.computeFaceNormals();
@@ -349,7 +345,6 @@ define(["common", "three"], function(common, THREE) {'use strict';
                 }
             }
 
-            console.log(vertexArrayToString(face));
         }
 
         // check isolated points vertices against all points map

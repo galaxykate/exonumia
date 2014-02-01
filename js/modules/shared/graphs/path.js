@@ -4,7 +4,7 @@
 define(["common", "./edge", "threeUtils", "./graph"], function(common, Edge, threeUtils, Graph) {'use strict';
 
     var debugOutputPath = function(s) {
-        //    console.log(s);
+        //console.log(s);
     };
 
     var Path = Graph.extend({
@@ -29,12 +29,14 @@ define(["common", "./edge", "threeUtils", "./graph"], function(common, Edge, thr
         },
 
         lineTo : function(p) {
+            var p0 = this.lastNode;
             var edge;
             if (this.lastNode) {
 
-                edge = new Edge(this.lastNode, p);
+                debugOutputPath("Line to " + p);
+                var p = this.addNode(p);
+                edge = new Edge(p0, p);
                 this.addEdge(edge);
-                this.addNode(p);
 
             } else {
                 debugOutputPath("First node, move to " + p);
@@ -42,18 +44,18 @@ define(["common", "./edge", "threeUtils", "./graph"], function(common, Edge, thr
             }
 
             this.lastNode = p;
-            debugOutputPath("Line to " + p);
 
             return edge;
         },
 
         quadCurveTo : function(c, p) {
+            var p0 = this.lastNode;
             var edge;
             debugOutputPath("Quad to " + c + " " + p);
-            if (this.lastNode) {
+            if (p0) {
 
                 var node = this.addNode(p);
-                edge = new Edge(this.lastNode, node, c);
+                edge = new Edge(p0, node, c);
                 this.addEdge(edge);
 
             } else {
@@ -61,24 +63,51 @@ define(["common", "./edge", "threeUtils", "./graph"], function(common, Edge, thr
                 debugOutputPath("First node, move to " + p);
             }
 
-            this.lastNode = p;
             return edge;
         },
 
+        smoothCurveTo : function(c1, p) {
+            var p0 = this.lastNode;
+            debugOutputPath("Smooth curve to " + c1 + " " + p);
+            var lastHandleOffset = new Vector();
+            if (this.lastHandle)
+                lastHandleOffset.setToDifference(this.lastHandle, p0);
+            var c0 = new Vector(p0);
+            c0.add(lastHandleOffset);
+            // FIX: add handle offset
+
+            return this.curveTo(c0, c1, p);
+        },
+
         curveTo : function(c0, c1, p) {
+            var p0 = this.lastNode;
             var edge;
             if (this.lastNode) {
+                debugOutputPath("Last node: " + p0);
+                debugOutputPath("Curve thru " + c0 + " " + c1 + " to " + p);
 
                 var node = this.addNode(p);
-                edge = new Edge(this.lastNode, node, c0, c1);
+                edge = new Edge(p0, node, c0, c1);
                 this.addEdge(edge);
 
             } else {
                 var node = this.addNode(p);
-                debugOutputPath("First node, move to " + p);
+                debugOutputPath("Curve, but First node, move to " + p);
             }
 
-            this.lastNode = p;
+            return edge;
+        },
+
+        close : function() {
+
+        },
+
+        addEdge : function() {
+
+            var edge = this._super.apply(this, arguments);
+            this.lastHandle = undefined;
+            if (edge.handles)
+                this.lastHandle = edge.handles[1];
             return edge;
         },
 
@@ -87,6 +116,8 @@ define(["common", "./edge", "threeUtils", "./graph"], function(common, Edge, thr
             if (!start || p.getDistanceTo(start) > .01) {
 
                 this._super(p);
+                this.lastNode = p;
+
                 return p;
             } else {
                 return start;

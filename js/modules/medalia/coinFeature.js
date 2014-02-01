@@ -2,7 +2,7 @@
  * @author Kate Compton
  */
 define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Graph, UI) {
-
+    var useMultiMaterial = false;
     defaultMaterial = new THREE.MeshNormalMaterial();
     var darkMaterial = new THREE.MeshBasicMaterial({
         color : 0xffffcc
@@ -12,11 +12,20 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
         wireframe : true,
         transparent : true
     });
+    var phongMat = new THREE.MeshPhongMaterial({
+        // light
+        specular : '#a9fcff',
+        // intermediate
+        color : '#00abb1',
+        // dark
+        emissive : '#006063',
+        shininess : 100
+    });
 
-    multiMaterial = [defaultMaterial, wireframeMaterial];
-    // multiMaterial = [defaultMaterial, defaultMaterial];
-
-    //defaultMaterial.side = THREE.DoubleSide;
+    //  multiMaterial = [defaultMaterial, wireframeMaterial];
+    multiMaterial = [phongMat, wireframeMaterial];
+    defaultMaterial = phongMat;
+    defaultMaterial.side = THREE.DoubleSide;
 
     // Just one shape, just one swiss geo
     var FeatureShape = Class.extend({
@@ -30,12 +39,19 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
                 outerPath : this.shape.outerPath.createLinearPath(3),
                 innerPaths : this.shape.innerPaths,
                 ringCount : this.ringCount,
+
             });
+            var area = Math.abs(this.shape.outerPath.calculateArea());
+            this.heightOffset = 50 - .004 * Math.pow(area, .8);
+            console.log("OFFSET: " + area + " " + this.heightOffset);
 
         },
 
         getMesh : function() {
-            this.mesh = THREE.SceneUtils.createMultiMaterialObject(this.modgeo.createGeometry(), multiMaterial);
+            if (useMultiMaterial)
+                this.mesh = THREE.SceneUtils.createMultiMaterialObject(this.modgeo.createGeometry(), multiMaterial);
+            else
+                this.mesh = new THREE.Mesh(this.modgeo.createGeometry(), defaultMaterial);
             return this.mesh;
         },
     });
@@ -162,7 +178,10 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
             var node = context.path.nodes[i];
             p.x = node.x * bump;
             p.y = node.y * bump;
-            p.z = -(1 - context.pctRing) * this.currentValues.height;
+
+            var s = context.featureShape.heightOffset;
+
+            p.z = -(1 - context.pctRing) * (this.currentValues.height + s);
         },
 
         remod : function() {
@@ -175,7 +194,7 @@ define(["common", "threeUtils", "graph", "ui"], function(common, threeUtils, Gra
                 for (var i = 0; i < this.featureShapes.length; i++) {
                     var fs = this.featureShapes[i];
                     fs.modgeo.modOuterRing(function(p, context) {
-
+                        context.featureShape = fs;
                         feature.modEdgeVertex(p, context);
                     });
 
